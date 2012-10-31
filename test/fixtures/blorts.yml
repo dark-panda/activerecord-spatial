@@ -1,0 +1,37 @@
+---
+blorts_1:
+  id: 1
+  name: "foo 1-1"
+  foo_id: 1
+blorts_2:
+  id: 2
+  name: "foo 1-2"
+  foo_id: 1
+blorts_3:
+  id: 3
+  name: "foo 1-3"
+  foo_id: 1
+blorts_4:
+  id: 4
+  name: "foo 2-1"
+  foo_id: 2
+blorts_5:
+  id: 5
+  name: "foo 2-2"
+  foo_id: 2
+blorts_6:
+  id: 6
+  name: "foo 2-3"
+  foo_id: 2
+blorts_7:
+  id: 7
+  name: "foo 3-1"
+  foo_id: 3
+blorts_8:
+  id: 8
+  name: "foo 3-2"
+  foo_id: 3
+blorts_9:
+  id: 9
+  name: "foo 3-3"
+  foo_id: 3

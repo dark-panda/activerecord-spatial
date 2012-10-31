@@ -1,0 +1,36 @@
+---
+zortable_1:
+  id: 1
+  name: "zortable 1-1"
+  zortable_geom: "010100000000000000000000000000000000000000"
+  zortable_type: "Foo"
+zortable_2:
+  id: 2
+  name: "zortable 1-2"
+  zortable_geom: "010100000000000000000014400000000000001440"
+  zortable_type: "Foo"
+zortable_3:
+  id: 3
+  name: "zortable 1-3"
+  zortable_geom: "01010000000000000000002E400000000000002E40"
+  zortable_type: "Foo"
+zortable_4:
+  id: 4
+  name: "zortable 2-1"
+  zortable_geom: "010100000000000000000000000000000000000000"
+  zortable_type: "Bar"
+zortable_5:
+  id: 5
+  name: "zortable 2-2"
+  zortable_geom: "010100000000000000000014400000000000001440"
+  zortable_type: "Bar"
+zortable_6:
+  id: 6
+  name: "zortable 2-3"
+  zortable_geom: "01010000000000000000002E400000000000002E40"
+  zortable_type: "Bar"
+zortable_7:
+  id: 7
+  name: "big zortable"
+  zortable_geom: "0103000000010000000500000000000000000034C000000000000034C000000000000034C0000000000000344000000000000034400000000000003440000000000000344000000000000034C000000000000034C000000000000034C0"
+  zortable_type: "Foo"

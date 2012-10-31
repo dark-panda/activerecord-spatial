@@ -1,0 +1,164 @@
+
+= ActiveRecord Spatial
+
+ActiveRecord Spatial is a collection of spatially-aware extensions that help
+ActiveRecord work the spatial tables. This gem used to be integrated with our
+geos-extensions gem available at https://github.com/zoocasa/geos-extensions but
+we have separated the two and extended ActiveRecord Spatial's capabilities
+in the process.
+
+At the moment, ActiveRecord Spatial is focused completely on PostgreSQL and
+PostGIS databases. This may change in the future, but for our purposes,
+PostGIS is our spatial database of choice and we haven't really had the need
+to use any of the alternatives such as Spatialite or the MySQL spatial
+extensions.
+
+== Features
+
+* automatic detection of geometry columns and just-in-time conversions
+  for input and output to and from WKB when using PostGIS. This allows
+  you to do stuff like this with your ActiveRecord models:
+
+    m = MyModel.find(12345)
+
+    m.the_geom
+    # => spits out the untouched geometry value as a string in WKB
+
+    m.the_geom_geos
+    # => spits out the geometry wrapped in a Geos::Geometry object
+
+    m.the_geom = 'POINT(0 0)'
+    # => setters will automatically make conversions from any of the formats
+    #    that the Geos.read can recognize, so Google Maps formats, WKT, WKB,
+    #    etc. are all converted automatically.
+
+    m.the_geom_wkt
+    # => automatically converts to a WKT string
+
+    m.the_geom_wkb_bin
+    # => automatically converts to WKB in binary
+
+  There's also some funky SRID handling code that will automatically
+  look in the geometry_columns table to make conversions for you when
+  necessary. Saving WKT as "SRID=default; POINT(0 0)" for instance will
+  automatically set the SRID when saving the ActiveRecord, or the SRID
+  can be specified manually.
+
+* multiple geometry columns are supported and detected for
+  automatically. These column accessors are all generated dynamically at
+  run time.
+
+* automatic generation of named scopes for ActiveRecord models. The
+  usual suspects are supported such as +st_contains+, +st_intersects+, etc.
+
+* ordering scopes are also included such as +order_by_area+, +order_by_length+,
+  etc.
+
+* together, the various spatial scopes let you chain together scopes to build
+  geospatial queries:
+
+    neighbourhood = Neighbourhood.find(12345)
+    my_model = MyModel.active.
+      recent.
+      st_within(neighbourhood.the_geom_geos.envelope).
+      st_dwithin(point, 0.1).
+      order_by_area.
+      all(
+        :limit => 10
+      )
+
+* spatial associations via the +has_many_spatially+ association method. This
+  method essentially operates like a standard +has_many+ association with
+  the added ability to define a spatial relationship with the +:relationship+
+  option rather than relying on direct equality. This allows you to set up
+  relationships like the following:
+
+    class Neighbourhood < ActiveRecord::Base
+      has_many_spatially :cities,
+        :relationship => :contains
+    end
+
+    class City < ActiveRecord::Base
+      has_many_spatially :neighbourhoods,
+        :relationship => :within
+    end
+
+    Neighbourhood.first.cities
+    #=> All cities that the neighbourhood is within
+
+    City.first.neighbourhoods
+    #=> All neighbourhoods contained by the city
+
+    City.includes(:neighbourhoods).first.neighbourhoods
+    #=> Eager loading works too
+
+
+  See the documentation for ActiveRecordSpatial::Associations for details.
+
+== Running ActiveRecord Tests
+
+The test helper attempts to install PostGIS on the test database, but in the
+event that it cannot find your PostGIS files you can either help to guide
+the PostGIS detection by setting a +POSTGIS_PATH+ environment variable that
+points to your +postgis.sql+ and +spatial_ref_sys.sql+ files.
+
+You can set up local database settings in the test/local_database.yml file.
+See the test/database.yml file for example settings.
+
+== ActiveRecord Versions Supported
+
+We're starting to standardize on Rails 3+ for our purposes, so future versions
+this gem function on versions of Rails 3 and above. To use spatial scopes on
+previous versions of ActiveRecord, see our geos-extensions gem available at
+https://github.com/zoocasa/geos-extensions . We have pulled the ActiveRecord
+extensions out of that gem and are instead packaging them here, thus allowing
+you to use the actual Geos extensions in an unfettered way. If you wish to
+use the spatial extensions with versions of Rails prior to 3, see versions of
+the geos-extensions gem prior to version 0.3.0 where the split occured.
+
+== PostGIS and PostgreSQL Versions Supported
+
+As of this writing, things look good for PostgreSQL 9.1 and 9.2 for both
+PostGIS 1.5 and 2.0. Some features are only available in PostGIS 2.0, such
+as the +st_3dintersects+ scope and the like, as that spatial relationship
+function was added in PostGIS 2.0.
+
+PostgreSQL 9.0 and below are currently not supported as some of the SQL we
+produce to create the spatial queries is not supported in older PostgreSQL
+versions.
+
+In any event, it is recommended that you use current versions of both
+PostgreSQL and PostGIS where possible.
+
+== Migrating from geos-extensions
+
+There are a few changes with ActiveRecord Spatial that aren't backwards
+compatible with older versions of geos-extensions. The migration path is
+pretty easy all the same and should only require a handful of changes for
+most projects.
+
+* The Geos::ActiveRecord module has been renamed to ActiveRecordSpatial.
+  This means you'll have to include ActiveRecordSpatial::SpatialColumns into
+  your models instead of Geos::ActiveRecord::SpatialColumns, for instance.
+
+* ActiveRecordSpatial::SpatialScopes is no longer automatically included
+  when ActiveRecordSpatial::SpatialColumns is included. This allows you to
+  optionally include SpatialScopes, as sometimes folks just don't want to use
+  our spatial scopes.
+
+* In an effort to move away from PostgreSQL/PostGIS-specifics (even if we're
+  not fully there yet), we've removed the PostgreSQLSpatialColumn class and
+  made everything use ActiveRecordSpatial::GeometryColumn and
+  ActiveRecordSpatial::GeographyColumn ActiveRecord models directly. These
+  are full-fledged ActiveRecord models now and can be accessed as such, but
+  they should be considered read-only models (and are marked as such). In
+  PostGIS 2.0+, for instance, these are both read-only views.
+
+* The pseudo constant methods for UNKNOWN_SRID and POSTGIS and such are now
+  real constants under ActiveRecordSpatial.
+
+== License
+
+This gem is licensed under an MIT-style license. See the +MIT-LICENSE+ file for
+details.
+

@@ -1,0 +1,12 @@
+*.orig
+.*.swp
+.*.swo
+*.tmp
+*.patch
+*~
+.DS_Store
+Thumbs.db
+Gemfile.lock
+debug.log
+test/local_database.yml
+doc/

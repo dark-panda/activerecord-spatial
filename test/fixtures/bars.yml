@@ -1,0 +1,16 @@
+---
+bars_1:
+  id: 1
+  name: "one"
+  the_geom: 'POINT(5 5)'
+  the_other_geom: 'SRID=4326; POINT(15 15)'
+bars_2:
+  id: 2
+  name: "two"
+  the_geom: 'POINT(15 15)'
+  the_other_geom: 'SRID=4326; POINT(25 25)'
+bars_3:
+  id: 3
+  name: "three"
+  the_geom: 'POLYGON((-10 -10, -10 10, 10 10, 10 -10, -10 -10))'
+  the_other_geom: 'SRID=4326; POLYGON((-10 -10, -10 10, 10 10, 10 -10, -10 -10))'
