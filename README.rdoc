@@ -51,8 +51,8 @@ extensions.
 * automatic generation of named scopes for ActiveRecord models. The
   usual suspects are supported such as +st_contains+, +st_intersects+, etc.
 
-* ordering scopes are also included such as +order_by_area+, +order_by_length+,
-  etc.
+* ordering scopes are also included such as +order_by_st_area+,
+  +order_by_st_length+, etc.
 
 * together, the various spatial scopes let you chain together scopes to build
   geospatial queries:
@@ -62,7 +62,7 @@ extensions.
       recent.
       st_within(neighbourhood.the_geom_geos.envelope).
       st_dwithin(point, 0.1).
-      order_by_area.
+      order_by_st_area.
       all(
         :limit => 10
       )
@@ -156,6 +156,11 @@ most projects.
 
 * The pseudo constant methods for UNKNOWN_SRID and POSTGIS and such are now
   real constants under ActiveRecordSpatial.
+
+* The +order_by_*+ scopes have all been renamed to +order_by_st_*+ to better
+  reflect that they are calling ST functions, to improve consistency with
+  the relationship scopes, and to lessen potential name clashes with other
+  existing scopes that may be named with similar conventions.
 
 == License
 

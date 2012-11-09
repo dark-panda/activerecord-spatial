@@ -57,50 +57,50 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
     assert_equal([3], FooGeography.st_covers('SRID=4269; POINT(7 7)', :column => :the_other_geom).all.collect(&:id).sort)
   end
 
-  def test_order_by_distance
-    assert_equal([3, 1, 2], FooGeography.order_by_distance('POINT(1 1)').all.collect(&:id))
+  def test_order_by_st_distance
+    assert_equal([3, 1, 2], FooGeography.order_by_st_distance('POINT(1 1)').all.collect(&:id))
   end
 
-  def test_order_by_distance_desc
-    assert_equal([2, 1, 3], FooGeography.order_by_distance('POINT(1 1)', :desc => true).all.collect(&:id))
+  def test_order_by_st_distance_desc
+    assert_equal([2, 1, 3], FooGeography.order_by_st_distance('POINT(1 1)', :desc => true).all.collect(&:id))
   end
 
-  def test_order_by_area
-    assert_equal([1, 2, 3], FooGeography.order_by_area.order('id').all.collect(&:id))
+  def test_order_by_st_area
+    assert_equal([1, 2, 3], FooGeography.order_by_st_area.order('id').all.collect(&:id))
   end
 
-  def test_order_by_area_desc
-    assert_equal([3, 1, 2], FooGeography.order_by_area(:desc => true).order('id').all.collect(&:id))
+  def test_order_by_st_area_desc
+    assert_equal([3, 1, 2], FooGeography.order_by_st_area(:desc => true).order('id').all.collect(&:id))
   end
 
-  def test_order_by_length
-    assert_equal([1, 2, 3], FooGeography.order_by_length.order('id').all.collect(&:id))
+  def test_order_by_st_length
+    assert_equal([1, 2, 3], FooGeography.order_by_st_length.order('id').all.collect(&:id))
   end
 
-  def test_order_by_length_desc
+  def test_order_by_st_length_desc
     expected = if ActiveRecordSpatial::POSTGIS[:lib] >= '2.0'
       [1, 2, 3]
     else
       [3, 1, 2]
     end
 
-    assert_equal(expected, FooGeography.order_by_length(:desc => true).order('id').where('true = true').all.collect(&:id))
+    assert_equal(expected, FooGeography.order_by_st_length(:desc => true).order('id').where('true = true').all.collect(&:id))
   end
 
-  def test_order_by_perimeter
-    skip('requires PostGIS 2+') unless FooGeography.respond_to?(:order_by_perimeter)
+  def test_order_by_st_perimeter
+    skip('requires PostGIS 2+') unless FooGeography.respond_to?(:order_by_st_perimeter)
 
-    assert_equal([1, 2, 3], FooGeography.order_by_perimeter.order('id').all.collect(&:id))
+    assert_equal([1, 2, 3], FooGeography.order_by_st_perimeter.order('id').all.collect(&:id))
   end
 
-  def test_order_by_perimeter_desc
-    skip('requires PostGIS 2+') unless FooGeography.respond_to?(:order_by_perimeter)
+  def test_order_by_st_perimeter_desc
+    skip('requires PostGIS 2+') unless FooGeography.respond_to?(:order_by_st_perimeter)
 
-    assert_equal([3, 1, 2], FooGeography.order_by_perimeter(:desc => true).order('id').all.collect(&:id))
+    assert_equal([3, 1, 2], FooGeography.order_by_st_perimeter(:desc => true).order('id').all.collect(&:id))
   end
 
-  def test_order_by_area_with_desc_symbol
-    assert_equal([3, 1, 2], FooGeography.order_by_area(:desc).order('id').all.collect(&:id))
+  def test_order_by_st_area_with_desc_symbol
+    assert_equal([3, 1, 2], FooGeography.order_by_st_area(:desc).order('id').all.collect(&:id))
   end
 end
 

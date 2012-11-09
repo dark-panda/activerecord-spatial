@@ -30,38 +30,38 @@ module ActiveRecordSpatial
   #
   # The following scopes take no arguments:
   #
-  # * order_by_area
-  # * order_by_ndims
-  # * order_by_npoints
-  # * order_by_nrings
-  # * order_by_numgeometries
-  # * order_by_numinteriorring
-  # * order_by_numinteriorrings
-  # * order_by_numpoints
-  # * order_by_length3d
-  # * order_by_length
-  # * order_by_length2d
-  # * order_by_perimeter
-  # * order_by_perimeter2d
-  # * order_by_perimeter3d
+  # * order_by_st_area
+  # * order_by_st_ndims
+  # * order_by_st_npoints
+  # * order_by_st_nrings
+  # * order_by_st_numgeometries
+  # * order_by_st_numinteriorring
+  # * order_by_st_numinteriorrings
+  # * order_by_st_numpoints
+  # * order_by_st_length3d
+  # * order_by_st_length
+  # * order_by_st_length2d
+  # * order_by_st_perimeter
+  # * order_by_st_perimeter2d
+  # * order_by_st_perimeter3d
   #
   # These next scopes allow you to specify a geometry argument for
   # measurement:
   #
-  # * order_by_distance
-  # * order_by_distance_sphere
-  # * order_by_maxdistance
-  # * order_by_hausdorffdistance (additionally allows you to set the
+  # * order_by_st_distance
+  # * order_by_st_distance_sphere
+  # * order_by_st_maxdistance
+  # * order_by_st_hausdorffdistance (additionally allows you to set the
   #   densify_frac argument)
-  # * order_by_distance_spheroid (requires an additional SPHEROID
+  # * order_by_st_distance_spheroid (requires an additional SPHEROID
   #   string to calculate against)
   #
   # These next scopes allow you to specify a SPHEROID string to calculate
   # against:
   #
-  # * order_by_length2d_spheroid
-  # * order_by_length3d_spheroid
-  # * order_by_length_spheroid
+  # * order_by_st_length2d_spheroid
+  # * order_by_st_length3d_spheroid
+  # * order_by_st_length_spheroid
   #
   # == Options
   #
@@ -186,21 +186,21 @@ module ActiveRecordSpatial
     end
 
     FUNCTION_ALIASES = {
-      'order_by_max_distance' => 'order_by_maxdistance',
+      'order_by_st_max_distance' => 'order_by_st_maxdistance',
       'st_geometrytype' => 'st_geometry_type'
     }
 
     COMPATIBILITY_FUNCTION_ALIASES = if ActiveRecordSpatial::POSTGIS[:lib] >= '2.0'
       {
-        'order_by_length3d' => 'order_by_3dlength',
-        'order_by_perimeter3d' => 'order_by_3dperimeter',
-        'order_by_length3d_spheroid' => 'order_by_3dlength_spheroid'
+        'order_by_st_length3d' => 'order_by_st_3dlength',
+        'order_by_st_perimeter3d' => 'order_by_st_3dperimeter',
+        'order_by_st_length3d_spheroid' => 'order_by_st_3dlength_spheroid'
       }
     else
       {
-        'order_by_3dlength' => 'order_by_length3d',
-        'order_by_3dperimeter' => 'order_by_perimeter3d',
-        'order_by_3dlength_spheroid' => 'order_by_length3d_spheroid'
+        'order_by_st_3dlength' => 'order_by_st_length3d',
+        'order_by_st_3dperimeter' => 'order_by_st_perimeter3d',
+        'order_by_st_3dlength_spheroid' => 'order_by_st_length3d_spheroid'
       }
     end
 
@@ -208,8 +208,8 @@ module ActiveRecordSpatial
       FUNCTION_ALIASES.merge!({
         'st_3d_dwithin' => 'st_3ddwithin',
         'st_3d_dfully_within' => 'st_3ddfullywithin',
-        'order_by_3d_distance' => 'order_by_3ddistance',
-        'order_by_3d_max_distance' => 'order_by_3dmaxdistance'
+        'order_by_st_3d_distance' => 'order_by_st_3ddistance',
+        'order_by_st_3d_max_distance' => 'order_by_st_3dmaxdistance'
       })
     end
 
@@ -402,7 +402,7 @@ module ActiveRecordSpatial
 
       ZERO_ARGUMENT_MEASUREMENTS.each do |measurement|
         src, line = <<-EOF, __LINE__ + 1
-          scope :order_by_#{measurement}, lambda { |*args|
+          scope :order_by_st_#{measurement}, lambda { |*args|
             assert_arguments_length(args, 0, 1)
             options = args[0]
 
@@ -417,7 +417,7 @@ module ActiveRecordSpatial
 
       ONE_GEOMETRY_ARGUMENT_MEASUREMENTS.each do |measurement|
         src, line = <<-EOF, __LINE__ + 1
-          scope :order_by_#{measurement}, lambda { |*args|
+          scope :order_by_st_#{measurement}, lambda { |*args|
             assert_arguments_length(args, 1, 2)
             geom, options = args
 
@@ -432,7 +432,7 @@ module ActiveRecordSpatial
 
       ONE_ARGUMENT_MEASUREMENTS.each do |measurement|
         src, line = <<-EOF, __LINE__ + 1
-          scope :order_by_#{measurement}, lambda { |*args|
+          scope :order_by_st_#{measurement}, lambda { |*args|
             assert_arguments_length(args, 1, 2)
             argument, options = args
 
@@ -446,7 +446,7 @@ module ActiveRecordSpatial
       end
 
       self.class_eval do
-        scope :order_by_hausdorffdistance, lambda { |*args|
+        scope :order_by_st_hausdorffdistance, lambda { |*args|
           assert_arguments_length(args, 1, 3)
           options = args.extract_options!
           geom, densify_frac = args
@@ -465,7 +465,7 @@ module ActiveRecordSpatial
           ]))
         }
 
-        scope :order_by_distance_spheroid, lambda { |*args|
+        scope :order_by_st_distance_spheroid, lambda { |*args|
           assert_arguments_length(args, 2, 3)
           geom, spheroid, options = args
 
