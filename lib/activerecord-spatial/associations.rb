@@ -214,6 +214,9 @@ end
 #   therefore the relationship in SQL becomes
 #   <tt>ST_contains("foos"."the_geom", "bars"."the_geom")</tt>.
 #
+# Note that you can modify the default geometry column name for all of
+# ActiveRecordSpatial by setting it via ActiveRecordSpatia.default_column_name.
+#
 # == Caveats
 #
 # * You should consider spatial associations to be essentially readonly. Since
@@ -225,8 +228,8 @@ module ActiveRecordSpatial::Associations
 
   DEFAULT_OPTIONS = {
     :relationship => :intersects,
-    :geom => :the_geom,
-    :foreign_geom => :the_geom,
+    :geom => ActiveRecordSpatial.default_column_name,
+    :foreign_geom => ActiveRecordSpatial.default_column_name,
     :scope_options => {
       :invert => true
     }

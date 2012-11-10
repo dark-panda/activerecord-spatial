@@ -14,6 +14,17 @@ module ActiveRecordSpatial
     def geography_columns?
       ::ActiveRecord::Base.connection.geography_columns?
     end
+
+    def default_column_name
+      @default_column_name ||= :the_geom
+    end
+
+    # Allows you to modify the default geometry column name for all of
+    # ActiveRecordSpatial. This is useful when you have a common column name
+    # for all of your geometry columns, such as +wkb+, +feature+, +geom+, etc.
+    def default_column_name=(column_name)
+      @default_column_name = column_name
+    end
   end
 end
 

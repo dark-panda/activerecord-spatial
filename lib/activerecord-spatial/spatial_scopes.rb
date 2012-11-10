@@ -213,6 +213,11 @@ module ActiveRecordSpatial
       })
     end
 
+    DEFAULT_OPTIONS = {
+      :column => ActiveRecordSpatial.default_column_name,
+      :use_index => true
+    }.freeze
+
     included do
       class << self
         protected
@@ -263,17 +268,19 @@ module ActiveRecordSpatial
           def default_options(*args)
             options = args.extract_options!
 
-            desc = if args.first == :desc
-              true
-            else
-              options[:desc]
-            end
+            if args.length > 0
+              desc = if args.first == :desc
+                true
+              else
+                options[:desc]
+              end
 
-            {
-              :column => 'the_geom',
-              :use_index => true,
-              :desc => desc
-            }.merge(options || {})
+              DEFAULT_OPTIONS.merge({
+                :desc => desc
+              }).merge(options || {})
+            else
+              DEFAULT_OPTIONS.merge(options || {})
+            end
           end
 
           def function_name(function, use_index = true)
