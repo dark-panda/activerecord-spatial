@@ -7,8 +7,8 @@ module ActiveRecord
       def initialize(*args)
         super
 
-        @geom = self.options[:geom].to_s
-        @foreign_geom = self.options[:foreign_geom].to_s
+        @geom = self.options[:geom]
+        @foreign_geom = self.options[:foreign_geom]
         @relationship = self.options[:relationship].to_s
         @scope_options = (self.options[:scope_options] || {}).merge({
           :column => @foreign_geom
@@ -44,18 +44,27 @@ module ActiveRecord
           table_name = reflection.quoted_table_name
           join_name = model.quoted_table_name
           column = %{#{SPATIAL_JOIN_QUOTED_NAME}.#{model.quoted_primary_key}}
+          geom = {
+            :class => model,
+            :table_alias => SPATIAL_JOIN_NAME
+          }
+
+          if reflection.options[:geom].is_a?(Hash)
+            geom.merge!(reflection.options[:geom])
+          else
+            geom[:column] = reflection.options[:geom]
+          end
 
           scoped.
             select(%{array_to_string(array_agg(#{column}), ',') AS "#{SPATIAL_FIELD_ALIAS}"}).
             joins(
               "INNER JOIN #{join_name} AS #{SPATIAL_JOIN_QUOTED_NAME} ON (" <<
-                klass.send("st_#{reflection.options[:relationship]}", {
-                  :class => model,
-                  :column => reflection.options[:geom],
-                  :table_alias => SPATIAL_JOIN_NAME
-                }, (reflection.options[:scope_options] || {}).merge(
-                  :column => reflection.options[:foreign_geom]
-                )).where_values.join(' AND ') <<
+                klass.send("st_#{reflection.options[:relationship]}",
+                  geom,
+                  (reflection.options[:scope_options] || {}).merge(
+                    :column => reflection.options[:foreign_geom]
+                  )
+                ).where_values.join(' AND ') <<
               ")"
             ).
             where(model.arel_table.alias(SPATIAL_JOIN_NAME)[model.primary_key].in(ids)).
@@ -109,9 +118,24 @@ module ActiveRecord
           table, foreign_table = tables.shift, tables.first
 
           conditions = self.conditions[i]
+          geom_options = {
+            :class => self.association.klass
+          }
+
+          if self.association.geom.is_a?(Hash)
+            geom_options.merge!(
+              :value => owner[self.association.geom[:name]]
+            )
+            geom_options.merge!(self.association.geom)
+          else
+            geom_options.merge!(
+              :value => owner[self.association.geom],
+              :name => self.association.geom
+            )
+          end
 
           if reflection == chain.last
-            scope = scope.send("st_#{self.association.relationship}", owner[self.association.geom], self.association.scope_options)
+            scope = scope.send("st_#{self.association.relationship}", geom_options, self.association.scope_options)
 
             if reflection.type
               scope = scope.where(table[reflection.type].eq(owner.class.base_class.name))
@@ -249,6 +273,10 @@ module ActiveRecordSpatial::Associations
     def build_options(options)
       if !options[:foreign_geom] && options[:as]
         options[:foreign_geom] = "#{options[:as]}_geom"
+      end
+
+      if options[:geom].is_a?(Hash)
+        options[:geom][:name] ||= ActiveRecordSpatial.default_column_name
       end
 
       DEFAULT_OPTIONS.deep_merge(options)

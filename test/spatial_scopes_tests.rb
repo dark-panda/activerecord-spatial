@@ -330,5 +330,115 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
 
     ids_tester(:st_3ddfullywithin, [ 'LINESTRING(-10 -10 -10, 10 10 10)', 100 ], [ 1, 2, 3 ], Foo3d)
   end
+
+  def test_order_by_with_column_wrapper
+    values = nil
+
+    assert_sql(/ST_envelope\("foos"."the_geom"\)/) do
+      values = Foo.
+        order_by_st_perimeter(
+          :desc => true,
+          :column => {
+            :wrapper => :envelope
+          }
+        ).order('id').all.collect(&:id)
+    end
+
+    assert_equal([3, 1, 2], values)
+  end
+
+  def test_order_by_with_column_wrapper_and_an_option
+    values = nil
+
+    assert_sql(/ST_geometryn\("foos"."the_geom", 1\)/) do
+      values = Foo.
+        order_by_st_perimeter(
+          :desc => true,
+          :column => {
+            :wrapper => {
+              :geometryn => 1
+            }
+          }
+        ).order('id').all.collect(&:id)
+    end
+
+    assert_equal([3, 1, 2], values)
+  end
+
+  def test_order_by_with_column_wrapper_and_options
+    values = nil
+
+    assert_sql(/ST_snap\("foos"."the_geom", 'POINT \(0 0\)', 1.0\)/) do
+      values = Foo.
+        order_by_st_perimeter(
+          :desc => true,
+          :column => {
+            :wrapper => {
+              :snap => [
+                'POINT (0 0)',
+                1.0
+              ]
+            }
+          }
+        ).order('id').all.collect(&:id)
+    end
+
+    assert_equal([3, 1, 2], values)
+  end
+
+  def test_relationship_with_column_wrapper
+    values = nil
+
+    assert_sql(/ST_centroid\("foos"."the_geom"\)/) do
+      values = Foo.
+        st_within(
+          'POLYGON((-5 -5, 5 10, 20 20, 10 5, -5 -5))',
+          :column => {
+            :wrapper => :centroid
+          }
+        ).order('id').all.collect(&:id)
+    end
+
+    assert_equal([1, 2, 3], values)
+  end
+
+  def test_relationship_with_column_wrapper_and_option
+    values = nil
+
+    assert_sql(/ST_geometryn\("foos"."the_geom", 1\)/) do
+      values = Foo.
+        st_within(
+          'POLYGON((-5 -5, 5 10, 20 20, 10 5, -5 -5))',
+          :column => {
+            :wrapper => {
+              :geometryn => 1
+            }
+          }
+        ).order('id').all.collect(&:id)
+    end
+
+    assert_equal([1, 2], values)
+  end
+
+    def test_relationship_with_column_wrapper_and_options
+    values = nil
+
+    assert_sql(/ST_snap\("foos"."the_geom", 'POINT \(0 0\)', 1.0\)/) do
+      values = Foo.
+        st_within(
+          'POLYGON((-5 -5, 5 10, 20 20, 10 5, -5 -5))',
+          :column => {
+            :wrapper => {
+              :snap => [
+                'POINT (0 0)',
+                1.0
+              ]
+            }
+          }
+        ).order('id').all.collect(&:id)
+    end
+
+    assert_equal([1, 2], values)
+  end
 end
 

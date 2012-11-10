@@ -471,3 +471,186 @@ class IncludeOptionTest < ActiveRecordSpatialTestCase
   end
 end
 
+class GeomWrapperTest < ActiveRecordSpatialTestCase
+  def self.before_suite
+    load_models(:foo, :bar)
+
+    Foo.class_eval do
+      has_many_spatially :bars,
+        :class_name => 'Bar',
+        :geom => {
+          :wrapper => :envelope
+        }
+    end
+  end
+
+  def test_without_eager_loading
+    values = nil
+
+    assert_sql(/ST_intersects\(ST_envelope\('#{REGEXP_WKB_HEX}'::geometry\), "bars"."the_geom"\)/) do
+      values = Foo.first.bars.collect(&:id).sort
+    end
+
+    assert_equal([ 3 ], values)
+  end
+
+  def test_with_eager_loading
+    values = nil
+
+    assert_sql(/ST_intersects\(ST_envelope\("__spatial_ids_join__"."the_geom"\), "bars"."the_geom"\)/) do
+      values = Foo.includes(:bars).first.bars.collect(&:id).sort
+    end
+
+    assert_equal([ 3 ], values)
+  end
+end
+
+class ForeignGeomWrapperTest < ActiveRecordSpatialTestCase
+  def self.before_suite
+    load_models(:foo, :bar)
+
+    Foo.class_eval do
+      has_many_spatially :bars,
+        :class_name => 'Bar',
+        :foreign_geom => {
+          :wrapper => :envelope
+        }
+    end
+  end
+
+  def test_without_eager_loading
+    values = nil
+
+    assert_sql(/ST_envelope\("bars"."the_geom"\)/) do
+      values = Foo.first.bars.collect(&:id).sort
+    end
+
+    assert_equal([ 3 ], values)
+  end
+
+  def test_with_eager_loading
+    values = nil
+
+    assert_sql(/ST_intersects\("__spatial_ids_join__"."the_geom", ST_envelope\("bars"."the_geom"\)\)/) do
+      values = Foo.includes(:bars).first.bars.collect(&:id).sort
+    end
+
+    assert_equal([ 3 ], values)
+  end
+end
+
+class BothGeomWrapperTest < ActiveRecordSpatialTestCase
+  def self.before_suite
+    load_models(:foo, :bar)
+
+    Foo.class_eval do
+      has_many_spatially :bars,
+        :class_name => 'Bar',
+        :geom => {
+          :wrapper => :convexhull
+        },
+        :foreign_geom => {
+          :wrapper => :envelope
+        }
+    end
+  end
+
+  def test_without_eager_loading
+    values = nil
+
+    assert_sql(/ST_convexhull\('#{REGEXP_WKB_HEX}'::geometry\), ST_envelope\("bars"."the_geom"\)/) do
+      values = Foo.first.bars.collect(&:id).sort
+    end
+
+    assert_equal([ 3 ], values)
+  end
+
+  def test_with_eager_loading
+    values = nil
+
+    assert_sql(/ST_intersects\(ST_convexhull\("__spatial_ids_join__"."the_geom"\), ST_envelope\("bars"."the_geom"\)\)/) do
+      values = Foo.includes(:bars).first.bars.collect(&:id).sort
+    end
+
+    assert_equal([ 3 ], values)
+  end
+end
+
+class BothGeomWrapperWithMixedSRIDsTest < ActiveRecordSpatialTestCase
+  def self.before_suite
+    load_models(:foo, :bar)
+
+    Foo.class_eval do
+      has_many_spatially :bars,
+        :class_name => 'Bar',
+        :geom => {
+          :wrapper => :convexhull
+        },
+        :foreign_geom => {
+          :wrapper => :centroid,
+          :name => :the_other_geom
+        }
+    end
+  end
+
+  def test_without_eager_loading
+    values = nil
+
+    assert_sql(/ST_convexhull\(ST_SetSRID\('#{REGEXP_WKB_HEX}'::geometry, 4326\)\), ST_centroid\("bars"."the_other_geom"\)/) do
+      values = Foo.first.bars.collect(&:id).sort
+    end
+
+    assert_equal([ 3 ], values)
+  end
+
+  def test_with_eager_loading
+    values = nil
+
+    assert_sql(/ST_intersects\(ST_convexhull\(ST_SetSRID\("__spatial_ids_join__"."the_geom", 4326\)\), ST_centroid\("bars"."the_other_geom"\)\)/) do
+      values = Foo.includes(:bars).first.bars.collect(&:id).sort
+    end
+
+    assert_equal([ 3 ], values)
+  end
+end
+
+class BothGeomWrapperAndOptionsWithMixedSRIDsTest < ActiveRecordSpatialTestCase
+  def self.before_suite
+    load_models(:foo, :bar)
+
+    Foo.class_eval do
+      has_many_spatially :bars,
+        :class_name => 'Bar',
+        :geom => {
+          :wrapper => :convexhull
+        },
+        :foreign_geom => {
+          :wrapper => {
+            :buffer => 100
+          },
+          :name => :the_other_geom
+        }
+    end
+  end
+
+  def test_without_eager_loading
+    values = nil
+
+    assert_sql(/ST_convexhull\(ST_SetSRID\('#{REGEXP_WKB_HEX}'::geometry, 4326\)\), ST_buffer\("bars"."the_other_geom", 100\)/) do
+      values = Foo.first.bars.collect(&:id).sort
+    end
+
+    assert_equal([ 1, 2, 3 ], values)
+  end
+
+  def test_with_eager_loading
+    values = nil
+
+    assert_sql(/ST_intersects\(ST_convexhull\(ST_SetSRID\("__spatial_ids_join__"."the_geom", 4326\)\), ST_buffer\("bars"."the_other_geom", 100\)\)/) do
+      values = Foo.includes(:bars).first.bars.collect(&:id).sort
+    end
+
+    assert_equal([ 1, 2, 3 ], values)
+  end
+end
+

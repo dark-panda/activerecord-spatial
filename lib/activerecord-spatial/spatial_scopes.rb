@@ -65,7 +65,33 @@ module ActiveRecordSpatial
   #
   # == Options
   #
-  # * :column - the column to compare against. The default is 'the_geom'.
+  # * :column - the column to compare against. This option can either be a
+  #   straight-up column name or a Hash that contains a handful of options
+  #   that can be used to wrap a geometry column in an ST_ function.
+  #   When wrapping a geometry column in a function, you can set the name of
+  #   the function and its methods like so:
+  #
+  #     Foo.st_within(geom, :column => {
+  #       :name => :the_geom,
+  #       :wrapper => :centroid
+  #     })
+  #
+  #     Foo.st_within(geom, :column => {
+  #       :wrapper => {
+  #         :snap => [ 'POINT (0 0)', 1 ]
+  #       }
+  #     })
+  #
+  #   In the first example, the name of the function is the value to the
+  #   :wrapper+ option. In the second example, +:snap+ is the function name
+  #   and the Array value is used as the arguments to the +ST_snap+ function.
+  #   We can also see the column name being set in the first example.
+  #
+  #   In all cases, the default column name is 'the_geom'. You can override
+  #   the default column name for the ActiveRecordSpatial by setting it via
+  #   ActiveRecordSpatial.default_column_name=, which is useful if you have
+  #   a common geometry name you tend to use, such as +geom+, +wkb+,
+  #   +feature+, etc.
   # * :use_index - whether to use the "ST_" methods or the "\_ST_"
   #   variants which don't use indexes. The default is true.
   # * :allow_null - relationship scopes have the option of treating NULL
@@ -234,7 +260,7 @@ module ActiveRecordSpatial
                   geom[:class_name].classify.constantize.quoted_table_name
                 end
 
-                "#{table_name}.#{self.connection.quote_table_name(geom[:column] || 'the_geom')}"
+                "#{table_name}.#{self.connection.quote_table_name(self.column_name(geom[:column]))}"
               else
                 raise ArgumentError.new("Expected either a Geos::Geometry or a Hash.")
             end
@@ -291,6 +317,34 @@ module ActiveRecordSpatial
             end
           end
 
+          def column_name(column_name_or_options)
+            if column_name_or_options.is_a?(Hash)
+              column_name_or_options[:name]
+            else
+              column_name_or_options
+            end || ActiveRecordSpatial.default_column_name
+          end
+
+          def wrap_column_or_geometry(column_name_or_geometry, options = nil)
+            if options.is_a?(Hash) && options[:wrapper]
+              wrapper, args = if options[:wrapper].is_a?(Hash)
+                [ options[:wrapper].keys.first, Array.wrap(options[:wrapper].values.first) ]
+              else
+                [ options[:wrapper], [] ]
+              end
+
+              sql = "ST_#{wrapper}(#{column_name_or_geometry}#{', ?' * args.length})"
+
+              if args.length
+                self.sanitize_sql([ sql, *args ])
+              else
+                sql
+              end
+            else
+              column_name_or_geometry
+            end
+          end
+
           def build_function_call(function, geom = nil, options = {}, function_options = {})
             options = default_options(options)
 
@@ -298,16 +352,21 @@ module ActiveRecordSpatial
               :additional_args => 0
             }.merge(function_options)
 
-            column_name = self.connection.quote_table_name(options[:column])
-            geom_args = [ "#{self.quoted_table_name}.#{column_name}" ]
+            column_name = self.column_name(options[:column])
+            first_geom_arg = self.wrap_column_or_geometry(
+              "#{self.quoted_table_name}.#{self.connection.quote_column_name(column_name)}",
+              options[:column]
+            )
+            geom_args = [ first_geom_arg ]
 
             if geom
-              column_type = self.spatial_column_by_name(options[:column]).spatial_type
-              column_srid = self.srid_for(options[:column])
+              column_type = self.spatial_column_by_name(column_name).spatial_type
+              column_srid = self.srid_for(column_name)
 
               unless geom.is_a?(Hash)
                 geom_arg = read_geos(geom, column_srid)
                 geom_srid = read_geom_srid(geom_arg, column_type)
+                geom_args << self.set_srid_or_transform(column_srid, geom_srid, geom_arg, column_type)
               else
                 klass = if geom[:class]
                   geom[:class]
@@ -317,11 +376,17 @@ module ActiveRecordSpatial
                   raise ArgumentError.new("Need either a :class or :class_name option to determine the class.")
                 end
 
-                geom_arg = geom
-                geom_srid = klass.srid_for(geom[:column] || 'the_geom')
-              end
+                if geom[:value]
+                  geom_arg = read_geos(geom[:value], column_srid)
+                  geom_srid = read_geom_srid(geom_arg, column_type)
+                else
+                  geom_arg = geom
+                  geom_srid = klass.srid_for(self.column_name(geom[:column]))
+                end
 
-              geom_args << self.set_srid_or_transform(column_srid, geom_srid, geom_arg, column_type)
+                transformed_geom = self.set_srid_or_transform(column_srid, geom_srid, geom_arg, column_type)
+                geom_args << self.wrap_column_or_geometry(transformed_geom, geom)
+              end
             end
 
             if options[:invert] && geom_args.length > 1
@@ -334,7 +399,7 @@ module ActiveRecordSpatial
             ret << ')'
 
             if options[:allow_null]
-              ret << " OR #{self.quoted_table_name}.#{column_name} IS NULL"
+              ret << " OR #{first_geom_arg} IS NULL"
             end
 
             ret
