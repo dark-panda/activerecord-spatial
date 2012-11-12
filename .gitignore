@@ -10,3 +10,4 @@ Gemfile.lock
 debug.log
 test/local_database.yml
 doc/
+pkg/
