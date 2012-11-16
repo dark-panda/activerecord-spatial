@@ -23,13 +23,13 @@ Gem::Specification.new do |s|
   s.add_dependency("activerecord", ["~> 3.2"])
   s.add_dependency("geos-extensions", [">= 0.3.0.dev"])
   if RUBY_PLATFORM == "java"
-    s.add_dependency("activerecord-jdbcpostgresql-adapter")
+    s.add_development_dependency("activerecord-jdbcpostgresql-adapter")
   else
-    s.add_dependency("pg")
+    s.add_development_dependency("pg")
   end
-  s.add_dependency("rdoc")
-  s.add_dependency("rake", ["~> 0.9"])
-  s.add_dependency("minitest")
-  s.add_dependency("turn")
+  s.add_development_dependency("rdoc")
+  s.add_development_dependency("rake", ["~> 0.9"])
+  s.add_development_dependency("minitest")
+  s.add_development_dependency("turn")
 end
 
