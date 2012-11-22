@@ -1,6 +1,7 @@
 
 require 'rubygems'
-require 'turn/autorun'
+require 'minitest/autorun'
+require 'minitest/reporters'
 
 ACTIVERECORD_GEM_VERSION = ENV['ACTIVERECORD_GEM_VERSION'] || '~> 3.2.0'
 gem 'activerecord', ACTIVERECORD_GEM_VERSION
@@ -253,15 +254,7 @@ module ActiveRecord
   ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
 end
 
-if ENV['autotest']
-  module Turn::Colorize
-    def self.color_supported?
-      true
-    end
-  end
-end
-
-class SpatialTestRunner < Turn::MiniRunner
+class SpatialTestRunner < MiniTest::Reporters::SpecReporter
   def _run_suite(*args)
     suite = args.first
 
@@ -274,4 +267,17 @@ class SpatialTestRunner < Turn::MiniRunner
   end
 end
 
-MiniTest::Unit.runner = SpatialTestRunner.new
+class SpatialTestRunner < MiniTest::Reporters::SpecReporter
+  def before_suite(suite)
+    super(suite)
+    suite.before_suite if suite.respond_to?(:before_suite)
+  end
+
+  def after_suite(suite)
+    super(suite)
+    suite.after_suite if suite.respond_to?(:after_suite)
+  end
+end
+
+MiniTest::Reporters.use!(SpatialTestRunner.new)
+
