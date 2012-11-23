@@ -7,6 +7,8 @@
 .DS_Store
 Thumbs.db
 Gemfile.lock
+Gemfile.local
+Guardfile.local
 debug.log
 test/local_database.yml
 doc/
