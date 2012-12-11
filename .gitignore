@@ -13,3 +13,4 @@ debug.log
 test/local_database.yml
 doc/
 pkg/
+coverage/

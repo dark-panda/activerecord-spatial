@@ -1,4 +1,13 @@
 
+if RUBY_VERSION >= '1.9'
+  require 'simplecov'
+
+  SimpleCov.command_name('Unit Tests')
+  SimpleCov.start do
+    add_filter '/test/'
+  end
+end
+
 require 'rubygems'
 require 'minitest/autorun'
 
