@@ -1,11 +1,9 @@
 
-if RUBY_VERSION >= '1.9'
-  require 'simplecov'
+require 'simplecov'
 
-  SimpleCov.command_name('Unit Tests')
-  SimpleCov.start do
-    add_filter '/test/'
-  end
+SimpleCov.command_name('Unit Tests')
+SimpleCov.start do
+  add_filter '/test/'
 end
 
 require 'rubygems'
