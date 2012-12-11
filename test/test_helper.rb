@@ -1,7 +1,10 @@
 
 require 'rubygems'
 require 'minitest/autorun'
-require 'minitest/reporters'
+
+if RUBY_VERSION >= '1.9'
+  require 'minitest/reporters'
+end
 
 ACTIVERECORD_GEM_VERSION = ENV['ACTIVERECORD_GEM_VERSION'] || '~> 3.2.0'
 gem 'activerecord', ACTIVERECORD_GEM_VERSION
@@ -279,5 +282,7 @@ class SpatialTestRunner < MiniTest::Reporters::SpecReporter
   end
 end
 
-MiniTest::Reporters.use!(SpatialTestRunner.new)
+if RUBY_VERSION >= '1.9'
+  MiniTest::Reporters.use!(SpatialTestRunner.new)
+end
 
