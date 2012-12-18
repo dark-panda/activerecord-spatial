@@ -8,10 +8,7 @@ end
 
 require 'rubygems'
 require 'minitest/autorun'
-
-if RUBY_VERSION >= '1.9'
-  require 'minitest/reporters'
-end
+require 'minitest/reporters'
 
 ACTIVERECORD_GEM_VERSION = ENV['ACTIVERECORD_GEM_VERSION'] || '~> 3.2.0'
 gem 'activerecord', ACTIVERECORD_GEM_VERSION
@@ -265,19 +262,6 @@ module ActiveRecord
 end
 
 class SpatialTestRunner < MiniTest::Reporters::SpecReporter
-  def _run_suite(*args)
-    suite = args.first
-
-    begin
-      suite.before_suite if suite.respond_to?(:before_suite)
-      super(*args)
-    ensure
-      suite.after_suite if suite.respond_to?(:after_suite)
-    end
-  end
-end
-
-class SpatialTestRunner < MiniTest::Reporters::SpecReporter
   def before_suite(suite)
     super(suite)
     suite.before_suite if suite.respond_to?(:before_suite)
@@ -289,7 +273,5 @@ class SpatialTestRunner < MiniTest::Reporters::SpecReporter
   end
 end
 
-if RUBY_VERSION >= '1.9'
-  MiniTest::Reporters.use!(SpatialTestRunner.new)
-end
+MiniTest::Reporters.use!(SpatialTestRunner.new)
 
