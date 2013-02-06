@@ -30,8 +30,7 @@ POSTGIS_PATHS = [
 ].compact
 
 puts "Testing against ActiveRecord #{Gem.loaded_specs['activerecord'].version.to_s}"
-
-puts "Ruby version #{RUBY_VERSION} - #{RbConfig::CONFIG['RUBY_INSTALL_NAME']}"
+puts "Ruby version #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} - #{RbConfig::CONFIG['RUBY_INSTALL_NAME']}"
 puts "Geos library version #{Geos::VERSION}" if defined?(Geos::VERSION)
 puts "GEOS version #{Geos::GEOS_VERSION}"
 puts "GEOS extensions version #{Geos::GEOS_EXTENSIONS_VERSION}"
