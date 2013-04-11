@@ -136,199 +136,22 @@ module ActiveRecordSpatial
     }.freeze
 
     included do
-      class << self
-        protected
-          def set_srid_or_transform(column_srid, geom_srid, geom, type)
-            geom_param = case geom
-              when Geos::Geometry
-                "#{self.connection.quote(geom.to_ewkb)}::#{type}"
-              when Hash
-                table_name = if geom[:table_alias]
-                  self.connection.quote_table_name(geom[:table_alias])
-                elsif geom[:class]
-                  geom[:class].quoted_table_name
-                elsif geom[:class_name]
-                  geom[:class_name].classify.constantize.quoted_table_name
-                end
-
-                "#{table_name}.#{self.connection.quote_table_name(self.column_name(geom[:column]))}"
-              else
-                raise ArgumentError.new("Expected either a Geos::Geometry or a Hash.")
-            end
-
-            sql = if type != :geography && column_srid != geom_srid
-              if column_srid == ActiveRecordSpatial::UNKNOWN_SRIDS[type] || geom_srid == ActiveRecordSpatial::UNKNOWN_SRIDS[type]
-                "ST_SetSRID(#{geom_param}, #{column_srid})"
-              else
-                "ST_Transform(#{geom_param}, #{column_srid})"
-              end
-            else
-              geom_param
-            end
-          end
-
-          def read_geos(geom, column_srid)
-            if geom.is_a?(String) && geom =~ /^SRID=default;/
-              geom = geom.sub(/default/, column_srid.to_s)
-            end
-            Geos.read(geom)
-          end
-
-          def read_geom_srid(geos, column_type = :geometry)
-            if geos.srid == 0 || geos.srid == -1
-              ActiveRecordSpatial::UNKNOWN_SRIDS[column_type]
-            else
-              geos.srid
-            end
-          end
-
-          def default_options(*args)
-            options = args.extract_options!
-
-            if args.length > 0
-              desc = if args.first == :desc
-                true
-              else
-                options[:desc]
-              end
-
-              DEFAULT_OPTIONS.merge({
-                :desc => desc
-              }).merge(options || {})
-            else
-              DEFAULT_OPTIONS.merge(options || {})
-            end
-          end
-
-          def function_name(function, use_index = true)
-            if use_index
-              "ST_#{function}"
-            else
-              "_ST_#{function}"
-            end
-          end
-
-          def column_name(column_name_or_options)
-            if column_name_or_options.is_a?(Hash)
-              column_name_or_options[:name]
-            else
-              column_name_or_options
-            end || ActiveRecordSpatial.default_column_name
-          end
-
-          def wrap_column_or_geometry(column_name_or_geometry, options = nil)
-            if options.is_a?(Hash) && options[:wrapper]
-              wrapper, args = if options[:wrapper].is_a?(Hash)
-                [ options[:wrapper].keys.first, Array.wrap(options[:wrapper].values.first) ]
-              else
-                [ options[:wrapper], [] ]
-              end
-
-              sql = "ST_#{wrapper}(#{column_name_or_geometry}#{', ?' * args.length})"
-
-              if args.length
-                self.sanitize_sql([ sql, *args ])
-              else
-                sql
-              end
-            else
-              column_name_or_geometry
-            end
-          end
-
-          def build_function_call(function, geom = nil, options = {}, function_options = {})
-            options = default_options(options)
-
-            function_options = {
-              :additional_args => 0
-            }.merge(function_options)
-
-            column_name = self.column_name(options[:column])
-            first_geom_arg = self.wrap_column_or_geometry(
-              "#{self.quoted_table_name}.#{self.connection.quote_column_name(column_name)}",
-              options[:column]
-            )
-            geom_args = [ first_geom_arg ]
-
-            if geom
-              column_type = self.spatial_column_by_name(column_name).spatial_type
-              column_srid = self.srid_for(column_name)
-
-              unless geom.is_a?(Hash)
-                geom_arg = read_geos(geom, column_srid)
-                geom_srid = read_geom_srid(geom_arg, column_type)
-                geom_args << self.set_srid_or_transform(column_srid, geom_srid, geom_arg, column_type)
-              else
-                klass = if geom[:class]
-                  geom[:class]
-                elsif geom[:class_name]
-                  geom[:class_name].classify.constantize
-                else
-                  raise ArgumentError.new("Need either a :class or :class_name option to determine the class.")
-                end
-
-                if geom[:value]
-                  geom_arg = read_geos(geom[:value], column_srid)
-                  geom_srid = read_geom_srid(geom_arg, column_type)
-                else
-                  geom_arg = geom
-                  geom_srid = klass.srid_for(self.column_name(geom[:column]))
-                end
-
-                transformed_geom = self.set_srid_or_transform(column_srid, geom_srid, geom_arg, column_type)
-                geom_args << self.wrap_column_or_geometry(transformed_geom, geom)
-              end
-            end
-
-            if options[:invert] && geom_args.length > 1
-              geom_args.reverse!
-            end
-
-            ret = ''
-            ret << "#{function_name(function, options[:use_index])}(#{geom_args.join(', ')}"
-            ret << ', ?' * function_options[:additional_args]
-            ret << ')'
-
-            if options[:allow_null]
-              ret << " OR #{first_geom_arg} IS NULL"
-            end
-
-            ret
-          end
-
-          def additional_ordering(*args)
-            options = args.extract_options!
-
-            desc = if args.first == :desc
-              true
-            else
-              options[:desc]
-            end
-
-            ''.tap do |ret|
-                if desc
-                  ret << ' DESC'
-                end
-
-                if options[:nulls]
-                  ret << " NULLS #{options[:nulls].to_s.upcase}"
-                end
-            end
-          end
-
-          def assert_arguments_length(args, min, max = (1.0 / 0.0))
-            raise ArgumentError.new("wrong number of arguments (#{args.length} for #{min}-#{max})") unless
-              args.length.between?(min, max)
-          end
-      end
+      assert_arguments_length = proc { |args, min, max = (1.0 / 0.0)|
+        raise ArgumentError.new("wrong number of arguments (#{args.length} for #{min}-#{max})") unless
+          args.length.between?(min, max)
+      }
 
       SpatialScopeConstants::RELATIONSHIPS.each do |relationship|
         src, line = <<-EOF, __LINE__ + 1
-          scope :st_#{relationship}, lambda { |*args|
-            assert_arguments_length(args, 1, 2)
+          scope :st_#{relationship}, lambda { |geom, options = {}|
+            options = {
+              :geom_arg => geom
+            }.merge(options)
 
-            unless args.first.nil?
-              self.where(build_function_call('#{relationship}', *args))
+            unless geom.nil?
+              self.where(
+                ActiveRecordSpatial::SpatialFunction.build!(self, '#{relationship}', options).to_sql
+              )
             end
           }
         EOF
@@ -337,14 +160,15 @@ module ActiveRecordSpatial
 
       SpatialScopeConstants::ONE_GEOMETRY_ARGUMENT_AND_ONE_ARGUMENT_RELATIONSHIPS.each do |relationship|
         src, line = <<-EOF, __LINE__ + 1
-          scope :st_#{relationship}, lambda { |*args|
-            assert_arguments_length(args, 2, 3)
-            geom, distance, options = args
+          scope :st_#{relationship}, lambda { |geom, distance, options = {}|
+            options = {
+              :geom_arg => geom,
+              :args => distance
+            }.merge(options)
 
-            self.where([
-              build_function_call('#{relationship}', geom, options, :additional_args => 1),
-              distance
-            ])
+            self.where(
+              ActiveRecordSpatial::SpatialFunction.build!(self, '#{relationship}', options).to_sql
+            )
           }
         EOF
         self.class_eval(src, __FILE__, line)
@@ -352,25 +176,27 @@ module ActiveRecordSpatial
 
       self.class_eval do
         scope :st_geometry_type, lambda { |*args|
-          assert_arguments_length(args, 1)
+          assert_arguments_length[args, 1]
           options = args.extract_options!
           types = args
 
-          self.where([
-            "#{build_function_call('GeometryType', nil, options)} IN (?)",
-            types
-          ])
+          self.where(
+            ActiveRecordSpatial::SpatialFunction.build!(self, 'GeometryType', options).in(types).to_sql
+          )
         }
       end
 
       SpatialScopeConstants::ZERO_ARGUMENT_MEASUREMENTS.each do |measurement|
         src, line = <<-EOF, __LINE__ + 1
-          scope :order_by_st_#{measurement}, lambda { |*args|
-            assert_arguments_length(args, 0, 1)
-            options = args[0]
+          scope :order_by_st_#{measurement}, lambda { |options = {}|
+            if options.is_a?(Symbol)
+              options = {
+                :desc => options
+              }
+            end
 
-            function_call = build_function_call('#{measurement}', nil, options)
-            function_call << additional_ordering(options)
+            function_call = ActiveRecordSpatial::SpatialFunction.build!(self, '#{measurement}', options).to_sql
+            function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
             self.order(function_call)
           }
@@ -380,12 +206,19 @@ module ActiveRecordSpatial
 
       SpatialScopeConstants::ONE_GEOMETRY_ARGUMENT_MEASUREMENTS.each do |measurement|
         src, line = <<-EOF, __LINE__ + 1
-          scope :order_by_st_#{measurement}, lambda { |*args|
-            assert_arguments_length(args, 1, 2)
-            geom, options = args
+          scope :order_by_st_#{measurement}, lambda { |geom, options = {}|
+            if options.is_a?(Symbol)
+              options = {
+                :desc => options
+              }
+            end
 
-            function_call = build_function_call('#{measurement}', geom, options)
-            function_call << additional_ordering(options)
+            options = {
+              :geom_arg => geom
+            }.merge(options)
+
+            function_call = ActiveRecordSpatial::SpatialFunction.build!(self, '#{measurement}', options).to_sql
+            function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
             self.order(function_call)
           }
@@ -395,14 +228,15 @@ module ActiveRecordSpatial
 
       SpatialScopeConstants::ONE_ARGUMENT_MEASUREMENTS.each do |measurement|
         src, line = <<-EOF, __LINE__ + 1
-          scope :order_by_st_#{measurement}, lambda { |*args|
-            assert_arguments_length(args, 1, 2)
-            argument, options = args
+          scope :order_by_st_#{measurement}, lambda { |argument, options = {}|
+            options = {
+              :args => argument
+            }.merge(options)
 
-            function_call = build_function_call('#{measurement}', nil, options, :additional_args => 1)
-            function_call << additional_ordering(options)
+            function_call = ActiveRecordSpatial::SpatialFunction.build!(self, '#{measurement}', options).to_sql
+            function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
-            self.order(sanitize_sql([ function_call, argument ]))
+            self.order(function_call)
           }
         EOF
         self.class_eval(src, __FILE__, line)
@@ -410,40 +244,39 @@ module ActiveRecordSpatial
 
       self.class_eval do
         scope :order_by_st_hausdorffdistance, lambda { |*args|
-          assert_arguments_length(args, 1, 3)
+          assert_arguments_length[args, 1, 3]
           options = args.extract_options!
           geom, densify_frac = args
 
-          function_call = build_function_call(
-            'hausdorffdistance',
-            geom,
-            options,
-            :additional_args => (densify_frac.present? ? 1 : 0)
-          )
-          function_call << additional_ordering(options)
+          options = {
+            :geom_arg => geom,
+            :args => densify_frac
+          }.merge(options)
 
-          self.order(sanitize_sql([
-            function_call,
-            densify_frac
-          ]))
+          function_call = ActiveRecordSpatial::SpatialFunction.build!(
+            self,
+            'hausdorffdistance',
+            options
+          ).to_sql
+          function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
+
+          self.order(function_call)
         }
 
-        scope :order_by_st_distance_spheroid, lambda { |*args|
-          assert_arguments_length(args, 2, 3)
-          geom, spheroid, options = args
+        scope :order_by_st_distance_spheroid, lambda { |geom, spheroid, options = {}|
+          options = {
+            :geom_arg => geom,
+            :args => spheroid
+          }.merge(options)
 
-          function_call = build_function_call(
+          function_call = ActiveRecordSpatial::SpatialFunction.build!(
+            self,
             'distance_spheroid',
-            geom,
-            options,
-            :additional_args => 1
-          )
-          function_call << additional_ordering(options)
+            options
+          ).to_sql
+          function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
-          self.order(sanitize_sql([
-            function_call,
-            spheroid
-          ]))
+          self.order(function_call)
         }
 
         class << self

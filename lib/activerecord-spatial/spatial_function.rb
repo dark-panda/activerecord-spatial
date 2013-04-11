@@ -1,0 +1,201 @@
+
+module ActiveRecordSpatial
+  class SpatialFunction
+    DEFAULT_OPTIONS = {
+      :column => ActiveRecordSpatial.default_column_name,
+      :use_index => true
+    }.freeze
+
+    def initialize(klass)
+      @klass = klass
+    end
+
+    def self.build!(klass, *args)
+      new(klass).build_function_call(*args)
+    end
+
+    def build_function_call(function, *args)
+      options = default_options(args.extract_options!)
+      geom = options[:geom_arg]
+      args = Array.wrap(options[:args])
+
+      column_name = self.column_name(options[:column])
+      first_geom_arg = self.wrap_column_or_geometry(
+        @klass.arel_table[column_name],
+        options[:column]
+      )
+      geom_args = [ first_geom_arg ]
+
+      if geom.present?
+        column_type = @klass.spatial_column_by_name(column_name).spatial_type
+        column_srid = @klass.srid_for(column_name)
+
+        unless geom.is_a?(Hash)
+          geom_arg = read_geos(geom, column_srid)
+          geom_srid = read_geom_srid(geom_arg, column_type)
+          geom_args << self.set_srid_or_transform(column_srid, geom_srid, geom_arg, column_type)
+        else
+          klass = if geom[:class]
+            geom[:class]
+          elsif geom[:class_name]
+            geom[:class_name].classify.constantize
+          else
+            raise ArgumentError.new("Need either a :class or :class_name option to determine the class.")
+          end
+
+          if geom[:value]
+            geom_arg = read_geos(geom[:value], column_srid)
+            geom_srid = read_geom_srid(geom_arg, column_type)
+          else
+            geom_arg = geom
+            geom_srid = klass.srid_for(self.column_name(geom[:column]))
+          end
+
+          transformed_geom = self.set_srid_or_transform(column_srid, geom_srid, geom_arg, column_type)
+          geom_args << self.wrap_column_or_geometry(transformed_geom, geom)
+        end
+      end
+
+      if options[:invert] && geom_args.length > 1
+        geom_args.reverse!
+      end
+
+      ret = Arel::Nodes::NamedFunction.new(
+        function_name(function, options[:use_index]),
+        geom_args + args
+      )
+
+      if options[:allow_null]
+        ret = ret.or(first_geom_arg.eq(nil))
+      end
+
+      ret
+    end
+
+    protected
+      def set_srid_or_transform(column_srid, geom_srid, geom, type)
+        geom_param = case geom
+          when Geos::Geometry
+            Arel.sql("#{@klass.connection.quote(geom.to_ewkb)}::#{type}")
+          when Hash
+            table_name = if geom[:table_alias]
+              @klass.connection.quote_table_name(geom[:table_alias])
+            elsif geom[:class]
+              geom[:class].quoted_table_name
+            elsif geom[:class_name]
+              geom[:class_name].classify.constantize.quoted_table_name
+            end
+
+            Arel.sql("#{table_name}.#{@klass.connection.quote_table_name(self.column_name(geom[:column]))}")
+          else
+            raise ArgumentError.new("Expected either a Geos::Geometry or a Hash.")
+        end
+
+        sql = if type != :geography && column_srid != geom_srid
+          if column_srid == ActiveRecordSpatial::UNKNOWN_SRIDS[type] || geom_srid == ActiveRecordSpatial::UNKNOWN_SRIDS[type]
+            Arel::Nodes::NamedFunction.new(
+              function_name('SetSRID'),
+              [ geom_param, column_srid ]
+            )
+
+          else
+            Arel::Nodes::NamedFunction.new(
+              function_name('Transform'),
+              [ geom_param, column_srid ]
+            )
+          end
+        else
+          geom_param
+        end
+      end
+
+      def read_geos(geom, column_srid)
+        if geom.is_a?(String) && geom =~ /^SRID=default;/
+          geom = geom.sub(/default/, column_srid.to_s)
+        end
+        Geos.read(geom)
+      end
+
+      def read_geom_srid(geos, column_type = :geometry)
+        if geos.srid == 0 || geos.srid == -1
+          ActiveRecordSpatial::UNKNOWN_SRIDS[column_type]
+        else
+          geos.srid
+        end
+      end
+
+      def default_options(*args)
+        options = args.extract_options!
+
+        if args.length > 0
+          desc = if args.first == :desc
+            true
+          else
+            options[:desc]
+          end
+
+          DEFAULT_OPTIONS.merge({
+            :desc => desc
+          }).merge(options || {})
+        else
+          DEFAULT_OPTIONS.merge(options || {})
+        end
+      end
+
+      def function_name(function, use_index = true)
+        if use_index
+          "ST_#{function}"
+        else
+          "_ST_#{function}"
+        end
+      end
+
+      def column_name(column_name_or_options)
+        column_name = if column_name_or_options.is_a?(Hash)
+          column_name_or_options[:name]
+        else
+          column_name_or_options
+        end || ActiveRecordSpatial.default_column_name
+      end
+
+      def wrap_column_or_geometry(column_name_or_geometry, options = nil)
+        if options.is_a?(Hash) && options[:wrapper]
+          wrapper, args = if options[:wrapper].is_a?(Hash)
+            [ options[:wrapper].keys.first, Array.wrap(options[:wrapper].values.first) ]
+          else
+            [ options[:wrapper], [] ]
+          end
+
+          Arel::Nodes::NamedFunction.new(
+            function_name(wrapper),
+            [ column_name_or_geometry, *args ]
+          )
+        else
+          column_name_or_geometry
+        end
+      end
+
+    class << self
+      def additional_ordering(*args)
+        options = args.extract_options!
+
+        desc = if args.first == :desc
+          true
+        else
+          options[:desc]
+        end
+
+        ''.tap do |ret|
+            if desc
+              ret << ' DESC'
+            end
+
+            if options[:nulls]
+              ret << " NULLS #{options[:nulls].to_s.upcase}"
+            end
+        end
+      end
+    end
+  end
+end
+

@@ -42,6 +42,12 @@ module ActiveRecordSpatial
         @geography_columns = nil
 
       public
+        # Build call to ActiveRecordSpatial::SpatialFunction.build! that helps
+        # you create spatial function calls.
+        def spatial_function(*args)
+          SpatialFunction.build!(self, *args)
+        end
+
         # Stubs for documentation purposes:
 
         # Returns an Array of available geometry columns in the
