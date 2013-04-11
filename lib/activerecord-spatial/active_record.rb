@@ -1,6 +1,7 @@
 
 module ActiveRecordSpatial
   autoload :SpatialColumns, 'activerecord-spatial/spatial_columns'
+  autoload :SpatialScopeConstants, 'activerecord-spatial/spatial_scope_constants'
   autoload :SpatialScopes, 'activerecord-spatial/spatial_scopes'
   autoload :SpatialColumn, 'activerecord-spatial/active_record/models/spatial_column'
   autoload :SpatialRefSys, 'activerecord-spatial/active_record/models/spatial_ref_sys'

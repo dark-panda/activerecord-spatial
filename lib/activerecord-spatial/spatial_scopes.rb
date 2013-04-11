@@ -130,115 +130,6 @@ module ActiveRecordSpatial
   module SpatialScopes
     extend ActiveSupport::Concern
 
-    RELATIONSHIPS = %w{
-      contains
-      containsproperly
-      covers
-      coveredby
-      crosses
-      disjoint
-      equals
-      intersects
-      orderingequals
-      overlaps
-      touches
-      within
-    }
-
-    ZERO_ARGUMENT_MEASUREMENTS = %w{
-      area
-      ndims
-      npoints
-      nrings
-      numgeometries
-      numinteriorring
-      numinteriorrings
-      numpoints
-      length
-      length2d
-      perimeter
-      perimeter2d
-    }
-
-    ONE_GEOMETRY_ARGUMENT_MEASUREMENTS = %w{
-      distance
-      distance_sphere
-      maxdistance
-    }
-
-    ONE_GEOMETRY_ARGUMENT_AND_ONE_ARGUMENT_RELATIONSHIPS = %w{
-      dwithin
-      dfullywithin
-    }
-
-    ONE_ARGUMENT_MEASUREMENTS = %w{
-      length2d_spheroid
-      length_spheroid
-    }
-
-    # Some functions were renamed in PostGIS 2.0.
-    if ActiveRecordSpatial::POSTGIS[:lib] >= '2.0'
-      RELATIONSHIPS.concat(%w{
-        3dintersects
-      })
-
-      ZERO_ARGUMENT_MEASUREMENTS.concat(%w{
-        3dlength
-        3dperimeter
-      })
-
-      ONE_ARGUMENT_MEASUREMENTS.concat(%w{
-        3dlength_spheroid
-      })
-
-      ONE_GEOMETRY_ARGUMENT_MEASUREMENTS.concat(%w{
-        3ddistance
-        3dmaxdistance
-      })
-
-      ONE_GEOMETRY_ARGUMENT_AND_ONE_ARGUMENT_RELATIONSHIPS.concat(%w{
-        3ddwithin
-        3ddfullywithin
-      })
-    else
-      ZERO_ARGUMENT_MEASUREMENTS.concat(%w{
-        length3d
-        perimeter3d
-      })
-
-      ONE_ARGUMENT_MEASUREMENTS.concat(%w{
-        length3d_spheroid
-      })
-    end
-
-    FUNCTION_ALIASES = {
-      'order_by_st_max_distance' => 'order_by_st_maxdistance',
-      'st_geometrytype' => 'st_geometry_type'
-    }
-
-    COMPATIBILITY_FUNCTION_ALIASES = if ActiveRecordSpatial::POSTGIS[:lib] >= '2.0'
-      {
-        'order_by_st_length3d' => 'order_by_st_3dlength',
-        'order_by_st_perimeter3d' => 'order_by_st_3dperimeter',
-        'order_by_st_length3d_spheroid' => 'order_by_st_3dlength_spheroid'
-      }
-    else
-      {
-        'order_by_st_3dlength' => 'order_by_st_length3d',
-        'order_by_st_3dperimeter' => 'order_by_st_perimeter3d',
-        'order_by_st_3dlength_spheroid' => 'order_by_st_length3d_spheroid'
-      }
-    end
-
-    if ActiveRecordSpatial::POSTGIS[:lib] >= '2.0'
-      FUNCTION_ALIASES.merge!({
-        'st_3d_dwithin' => 'st_3ddwithin',
-        'st_3d_dfully_within' => 'st_3ddfullywithin',
-        'order_by_st_3d_distance' => 'order_by_st_3ddistance',
-        'order_by_st_3d_max_distance' => 'order_by_st_3dmaxdistance'
-      })
-    end
-
     DEFAULT_OPTIONS = {
       :column => ActiveRecordSpatial.default_column_name,
       :use_index => true
@@ -431,7 +322,7 @@ module ActiveRecordSpatial
           end
       end
 
-      RELATIONSHIPS.each do |relationship|
+      SpatialScopeConstants::RELATIONSHIPS.each do |relationship|
         src, line = <<-EOF, __LINE__ + 1
           scope :st_#{relationship}, lambda { |*args|
             assert_arguments_length(args, 1, 2)
@@ -444,7 +335,7 @@ module ActiveRecordSpatial
         self.class_eval(src, __FILE__, line)
       end
 
-      ONE_GEOMETRY_ARGUMENT_AND_ONE_ARGUMENT_RELATIONSHIPS.each do |relationship|
+      SpatialScopeConstants::ONE_GEOMETRY_ARGUMENT_AND_ONE_ARGUMENT_RELATIONSHIPS.each do |relationship|
         src, line = <<-EOF, __LINE__ + 1
           scope :st_#{relationship}, lambda { |*args|
             assert_arguments_length(args, 2, 3)
@@ -472,7 +363,7 @@ module ActiveRecordSpatial
         }
       end
 
-      ZERO_ARGUMENT_MEASUREMENTS.each do |measurement|
+      SpatialScopeConstants::ZERO_ARGUMENT_MEASUREMENTS.each do |measurement|
         src, line = <<-EOF, __LINE__ + 1
           scope :order_by_st_#{measurement}, lambda { |*args|
             assert_arguments_length(args, 0, 1)
@@ -487,7 +378,7 @@ module ActiveRecordSpatial
         self.class_eval(src, __FILE__, line)
       end
 
-      ONE_GEOMETRY_ARGUMENT_MEASUREMENTS.each do |measurement|
+      SpatialScopeConstants::ONE_GEOMETRY_ARGUMENT_MEASUREMENTS.each do |measurement|
         src, line = <<-EOF, __LINE__ + 1
           scope :order_by_st_#{measurement}, lambda { |*args|
             assert_arguments_length(args, 1, 2)
@@ -502,7 +393,7 @@ module ActiveRecordSpatial
         self.class_eval(src, __FILE__, line)
       end
 
-      ONE_ARGUMENT_MEASUREMENTS.each do |measurement|
+      SpatialScopeConstants::ONE_ARGUMENT_MEASUREMENTS.each do |measurement|
         src, line = <<-EOF, __LINE__ + 1
           scope :order_by_st_#{measurement}, lambda { |*args|
             assert_arguments_length(args, 1, 2)
@@ -556,7 +447,9 @@ module ActiveRecordSpatial
         }
 
         class << self
-          aliases = COMPATIBILITY_FUNCTION_ALIASES.merge(FUNCTION_ALIASES)
+          aliases = SpatialScopeConstants::COMPATIBILITY_FUNCTION_ALIASES.merge(
+            SpatialScopeConstants::FUNCTION_ALIASES
+          )
 
           aliases.each do |k, v|
             alias_method(k, v)

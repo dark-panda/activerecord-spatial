@@ -263,8 +263,8 @@ module ActiveRecordSpatial::Associations
     def has_many_spatially(name, options = {}, &extension)
       options = build_options(options)
 
-      if !ActiveRecordSpatial::SpatialScopes::RELATIONSHIPS.include?(options[:relationship].to_s)
-        raise ArgumentError.new(%{Invalid spatial relationship "#{options[:relationship]}", expected one of #{ActiveRecordSpatial::SpatialScopes::RELATIONSHIPS.inspect}})
+      if !ActiveRecordSpatial::SpatialScopeConstants::RELATIONSHIPS.include?(options[:relationship].to_s)
+        raise ArgumentError.new(%{Invalid spatial relationship "#{options[:relationship]}", expected one of #{ActiveRecordSpatial::SpatialScopeConstants::RELATIONSHIPS.inspect}})
       end
 
       ActiveRecord::Associations::Builder::Spatial.build(self, name, options, &extension)
