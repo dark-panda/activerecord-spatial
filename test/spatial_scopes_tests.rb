@@ -8,7 +8,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def ids_tester(method, args, ids = [], klass = Foo)
-    geoms = klass.send(method, *Array(args)).all
+    geoms = klass.send(method, *Array.wrap(args)).all
     assert_equal(ids.sort, geoms.collect(&:id).sort)
   end
 

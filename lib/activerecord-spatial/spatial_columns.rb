@@ -159,10 +159,10 @@ module ActiveRecordSpatial
             if options[:except] && options[:only]
               raise ArgumentError, "You can only specify either :except or :only (#{options.keys.inspect})"
             elsif options[:except]
-              except = Array(options[:except]).collect(&:to_s)
+              except = Array.wrap(options[:except]).collect(&:to_s)
               create_these.reject! { |c| except.include?(c) }
             elsif options[:only]
-              only = Array(options[:only]).collect(&:to_s)
+              only = Array.wrap(options[:only]).collect(&:to_s)
               create_these.select! { |c| only.include?(c) }
             end
           end
