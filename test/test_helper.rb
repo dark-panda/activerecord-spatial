@@ -9,10 +9,6 @@ end
 require 'rubygems'
 require 'minitest/autorun'
 require 'minitest/reporters'
-
-ACTIVERECORD_GEM_VERSION = ENV['ACTIVERECORD_GEM_VERSION'] || '~> 3.2.0'
-gem 'activerecord', ACTIVERECORD_GEM_VERSION
-
 require 'active_support'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/dependencies'
