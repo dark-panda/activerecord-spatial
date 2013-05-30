@@ -29,6 +29,19 @@ module ActiveRecord
       def geography_columns?
         ActiveRecordSpatial::POSTGIS[:lib] >= '1.5'
       end
+
+      if defined?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID)
+        module OID
+          class Spatial < Type
+            def type_cast(value)
+              value
+            end
+          end
+
+          register_type 'geometry', OID::Spatial.new
+          register_type 'geography', OID::Spatial.new
+        end
+      end
     end
   end
 end
