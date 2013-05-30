@@ -8,7 +8,7 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
   end
 
   def ids_tester(method, args, ids = [], options = {})
-    geoms = FooGeography.send(method, *Array.wrap(args)).all(options)
+    geoms = FooGeography.send(method, *Array.wrap(args)).where(options[:conditions]).to_a
     assert_equal(ids.sort, geoms.collect(&:id).sort)
   end
 
@@ -42,39 +42,39 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
   end
 
   def test_with_column
-    assert_equal([3], FooGeography.st_covers('POINT(7 7)', :column => :the_other_geom).all.collect(&:id).sort)
+    assert_equal([3], FooGeography.st_covers('POINT(7 7)', :column => :the_other_geom).to_a.collect(&:id).sort)
   end
 
   def test_with_srid_switching
-    assert_equal([3], FooGeography.st_covers('SRID=4326; POINT(3 3)').all.collect(&:id).sort)
+    assert_equal([3], FooGeography.st_covers('SRID=4326; POINT(3 3)').to_a.collect(&:id).sort)
   end
 
   def test_with_srid_default
-    assert_equal([3], FooGeography.st_covers('SRID=default; POINT(3 3)').all.collect(&:id).sort)
+    assert_equal([3], FooGeography.st_covers('SRID=default; POINT(3 3)').to_a.collect(&:id).sort)
   end
 
   def test_with_srid_transform
-    assert_equal([3], FooGeography.st_covers('SRID=4269; POINT(7 7)', :column => :the_other_geom).all.collect(&:id).sort)
+    assert_equal([3], FooGeography.st_covers('SRID=4269; POINT(7 7)', :column => :the_other_geom).to_a.collect(&:id).sort)
   end
 
   def test_order_by_st_distance
-    assert_equal([3, 1, 2], FooGeography.order_by_st_distance('POINT(1 1)').all.collect(&:id))
+    assert_equal([3, 1, 2], FooGeography.order_by_st_distance('POINT(1 1)').to_a.collect(&:id))
   end
 
   def test_order_by_st_distance_desc
-    assert_equal([2, 1, 3], FooGeography.order_by_st_distance('POINT(1 1)', :desc => true).all.collect(&:id))
+    assert_equal([2, 1, 3], FooGeography.order_by_st_distance('POINT(1 1)', :desc => true).to_a.collect(&:id))
   end
 
   def test_order_by_st_area
-    assert_equal([1, 2, 3], FooGeography.order_by_st_area.order('id').all.collect(&:id))
+    assert_equal([1, 2, 3], apply_id_order_scope(FooGeography.order_by_st_area).to_a.collect(&:id))
   end
 
   def test_order_by_st_area_desc
-    assert_equal([3, 1, 2], FooGeography.order_by_st_area(:desc => true).order('id').all.collect(&:id))
+    assert_equal([3, 1, 2], apply_id_order_scope(FooGeography.order_by_st_area(:desc => true)).to_a.collect(&:id))
   end
 
   def test_order_by_st_length
-    assert_equal([1, 2, 3], FooGeography.order_by_st_length.order('id').all.collect(&:id))
+    assert_equal([1, 2, 3], apply_id_order_scope(FooGeography.order_by_st_length).to_a.collect(&:id))
   end
 
   def test_order_by_st_length_desc
@@ -84,23 +84,23 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
       [3, 1, 2]
     end
 
-    assert_equal(expected, FooGeography.order_by_st_length(:desc => true).order('id').where('true = true').all.collect(&:id))
+    assert_equal(expected, apply_id_order_scope(FooGeography.order_by_st_length(:desc => true)).where('true = true').to_a.collect(&:id))
   end
 
   def test_order_by_st_perimeter
     skip('requires PostGIS 2+') unless FooGeography.respond_to?(:order_by_st_perimeter)
 
-    assert_equal([1, 2, 3], FooGeography.order_by_st_perimeter.order('id').all.collect(&:id))
+    assert_equal([1, 2, 3], apply_id_order_scope(FooGeography.order_by_st_perimeter).to_a.collect(&:id))
   end
 
   def test_order_by_st_perimeter_desc
     skip('requires PostGIS 2+') unless FooGeography.respond_to?(:order_by_st_perimeter)
 
-    assert_equal([3, 1, 2], FooGeography.order_by_st_perimeter(:desc => true).order('id').all.collect(&:id))
+    assert_equal([3, 1, 2], apply_id_order_scope(FooGeography.order_by_st_perimeter(:desc => true)).to_a.collect(&:id))
   end
 
   def test_order_by_st_area_with_desc_symbol
-    assert_equal([3, 1, 2], FooGeography.order_by_st_area(:desc).order('id').all.collect(&:id))
+    assert_equal([3, 1, 2], apply_id_order_scope(FooGeography.order_by_st_area(:desc)).to_a.collect(&:id))
   end
 end
 

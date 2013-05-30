@@ -220,6 +220,16 @@ class ActiveRecordSpatialTestCase < ActiveRecord::TestCase
       [ 0, 0 ]
     ], cs.to_a)
   end
+
+  # Starting with Rails 4, `order` scopes are prepended to prior scopes, so
+  # we need to account for both here.
+  def apply_id_order_scope(scope)
+    if ActiveRecord::VERSION::MAJOR >= 4
+      scope.unscoped.order('id').merge(scope)
+    else
+      scope.order('id')
+    end
+  end
 end
 
 if !defined?(ActiveRecord::SQLCounter)

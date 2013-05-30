@@ -229,7 +229,7 @@ class PreloadTest < ActiveRecordSpatialTestCase
     values = nil
     assert_queries(4) do
       assert_sql(/ST_intersects\('#{REGEXP_WKB_HEX}'::geometry, "bars"\."the_geom"/) do
-        values = Foo.all.collect do |foo|
+        values = Foo.all.to_a.collect do |foo|
           foo.bars.length
         end
       end
@@ -242,7 +242,7 @@ class PreloadTest < ActiveRecordSpatialTestCase
     values = nil
     assert_queries(2) do
       assert_sql(/SELECT "bars"\.\*, array_to_string\(array_agg\("__spatial_ids_join__"."id"\), ','\) AS "__spatial_ids__" FROM "bars" INNER JOIN "foos" AS "__spatial_ids_join__" ON \(ST_intersects\("__spatial_ids_join__"."the_geom", "bars"."the_geom"\)\) WHERE "__spatial_ids_join__"\."id" IN \(.+\) GROUP BY "bars"\."id"/) do
-        values = Foo.includes(:bars).all.collect do |foo|
+        values = Foo.includes(:bars).to_a.collect do |foo|
           foo.bars.length
         end
       end
@@ -267,7 +267,7 @@ class PreloadWithOtherGeomTest < ActiveRecordSpatialTestCase
     values = nil
     assert_queries(4) do
       assert_sql(/ST_intersects\(ST_SetSRID\('#{REGEXP_WKB_HEX}'::geometry, #{ActiveRecordSpatial::UNKNOWN_SRID}\), "bars"\."the_geom"/) do
-        values = Foo.order('id').all.collect do |foo|
+        values = Foo.order('id').to_a.collect do |foo|
           foo.bars.length
         end
       end
@@ -280,7 +280,7 @@ class PreloadWithOtherGeomTest < ActiveRecordSpatialTestCase
     values = nil
     assert_queries(2) do
       assert_sql(/SELECT "bars"\.\*, array_to_string\(array_agg\("__spatial_ids_join__"."id"\), ','\) AS "__spatial_ids__" FROM "bars" INNER JOIN "foos" AS "__spatial_ids_join__" ON \(ST_intersects\(ST_SetSRID\("__spatial_ids_join__"."the_other_geom", #{ActiveRecordSpatial::UNKNOWN_SRID}\), "bars"."the_geom"\)\) WHERE "__spatial_ids_join__"\."id" IN \(.+\) GROUP BY "bars"\."id"/) do
-        values = Foo.order('id').includes(:bars).all.collect do |foo|
+        values = Foo.order('id').includes(:bars).to_a.collect do |foo|
           foo.bars.length
         end
       end
@@ -460,6 +460,8 @@ class IncludeOptionTest < ActiveRecordSpatialTestCase
   end
 
   def test_includes
+    skip("Removed from AR 4") if ActiveRecord::VERSION::MAJOR >= 4
+
     values = nil
     assert_queries(3) do
       assert_sql(/SELECT\s+"blorts"\.\*\s+FROM\s+"blorts"\s+WHERE\s+"blorts"\."foo_id"\s+IN\s+\(.+\)/) do
