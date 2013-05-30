@@ -175,10 +175,6 @@ class ActiveRecordSpatialTestCase < ActiveRecord::TestCase
         klass = model.classify
 
         ActiveSupport::Dependencies.load_file(BASE_PATH.join("models/#{model}.rb"), [ klass ])
-
-        ActiveRecord::Base.silence do
-          fixtures model.pluralize
-        end
       end
     end
 
