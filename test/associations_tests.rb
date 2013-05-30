@@ -654,5 +654,23 @@ class BothGeomWrapperAndOptionsWithMixedSRIDsTest < ActiveRecordSpatialTestCase
 
     assert_equal([ 1, 2, 3 ], values)
   end
+
+  class ScopeArgumentTest < ActiveRecordSpatialTestCase
+    def setup
+      self.class.load_models(:foo, :bar, :blort)
+    end
+
+    def test_foo
+      Foo.class_eval do
+        has_many_spatially :bars, proc {
+          self.order(:id)
+        }
+      end
+
+      assert_sql(/ORDER BY "bars".id/) do
+        Foo.first.bars.to_a
+      end
+    end
+  end if ActiveRecord::VERSION::MAJOR >= 4
 end
 
