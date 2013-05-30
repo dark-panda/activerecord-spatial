@@ -94,7 +94,7 @@ module ActiveRecordSpatial
               if !defined?(@#{m}_columns) || @#{m}_columns.nil?
                 @#{m}_columns = ActiveRecordSpatial::#{m.capitalize}Column.where(
                   :f_table_name => self.table_name
-                ).all
+                ).to_a
                 @#{m}_columns.freeze
               end
               @#{m}_columns
