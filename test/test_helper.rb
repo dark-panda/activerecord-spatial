@@ -25,11 +25,12 @@ POSTGIS_PATHS = [
   '/usr/pgsql-*/share/contrib/postgis-*',
 ].compact
 
-puts "Testing against ActiveRecord #{Gem.loaded_specs['activerecord'].version.to_s}"
-puts "Ruby version #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} - #{RbConfig::CONFIG['RUBY_INSTALL_NAME']}"
-puts "Geos library version #{Geos::VERSION}" if defined?(Geos::VERSION)
-puts "GEOS version #{Geos::GEOS_VERSION}"
-puts "GEOS extensions version #{Geos::GEOS_EXTENSIONS_VERSION}"
+puts "ActiveRecordSpatial #{ActiveRecordSpatial::VERSION}"
+puts "ActiveRecord #{Gem.loaded_specs['activerecord'].version.to_s}"
+puts "Ruby #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} - #{RbConfig::CONFIG['RUBY_INSTALL_NAME']}"
+puts "Geos library #{Geos::VERSION}" if defined?(Geos::VERSION)
+puts "GEOS #{Geos::GEOS_VERSION}"
+puts "GEOS extensions #{Geos::GEOS_EXTENSIONS_VERSION}"
 if defined?(Geos::FFIGeos)
   puts "Using #{Geos::FFIGeos.geos_library_paths.join(', ')}"
 end
