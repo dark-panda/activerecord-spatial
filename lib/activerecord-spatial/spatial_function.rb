@@ -16,8 +16,9 @@ module ActiveRecordSpatial
 
     def build_function_call(function, *args)
       options = default_options(args.extract_options!)
-      geom = options[:geom_arg]
-      args = Array.wrap(options[:args])
+
+      geom = options.fetch(:geom_arg, args.first)
+      args = Array.wrap(options.fetch(:args, args.from(1)))
 
       column_name = self.column_name(options[:column])
       first_geom_arg = self.wrap_column_or_geometry(
