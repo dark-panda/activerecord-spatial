@@ -667,7 +667,7 @@ class BothGeomWrapperAndOptionsWithMixedSRIDsTest < ActiveRecordSpatialTestCase
         }
       end
 
-      assert_sql(/ORDER BY "bars".id/) do
+      assert_sql(/ORDER BY "bars"."id"/) do
         Foo.first.bars.to_a
       end
     end

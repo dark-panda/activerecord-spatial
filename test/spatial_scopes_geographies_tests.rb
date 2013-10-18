@@ -66,15 +66,15 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_area
-    assert_equal([1, 2, 3], apply_id_order_scope(FooGeography.order_by_st_area).to_a.collect(&:id))
+    assert_equal([1, 2, 3], FooGeography.order_by_st_area.to_a.collect(&:id))
   end
 
   def test_order_by_st_area_desc
-    assert_equal([3, 1, 2], apply_id_order_scope(FooGeography.order_by_st_area(:desc => true)).to_a.collect(&:id))
+    assert_equal([3, 1, 2], FooGeography.order_by_st_area(:desc => true).to_a.collect(&:id))
   end
 
   def test_order_by_st_length
-    assert_equal([1, 2, 3], apply_id_order_scope(FooGeography.order_by_st_length).to_a.collect(&:id))
+    assert_equal([1, 2, 3], FooGeography.order_by_st_length.to_a.collect(&:id))
   end
 
   def test_order_by_st_length_desc
@@ -84,23 +84,23 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
       [3, 1, 2]
     end
 
-    assert_equal(expected, apply_id_order_scope(FooGeography.order_by_st_length(:desc => true)).where('true = true').to_a.collect(&:id))
+    assert_equal(expected, FooGeography.order_by_st_length(:desc => true).where('true = true').to_a.collect(&:id))
   end
 
   def test_order_by_st_perimeter
     skip('requires PostGIS 2+') unless FooGeography.respond_to?(:order_by_st_perimeter)
 
-    assert_equal([1, 2, 3], apply_id_order_scope(FooGeography.order_by_st_perimeter).to_a.collect(&:id))
+    assert_equal([1, 2, 3], FooGeography.order_by_st_perimeter.to_a.collect(&:id))
   end
 
   def test_order_by_st_perimeter_desc
     skip('requires PostGIS 2+') unless FooGeography.respond_to?(:order_by_st_perimeter)
 
-    assert_equal([3, 1, 2], apply_id_order_scope(FooGeography.order_by_st_perimeter(:desc => true)).to_a.collect(&:id))
+    assert_equal([3, 1, 2], FooGeography.order_by_st_perimeter(:desc => true).to_a.collect(&:id))
   end
 
   def test_order_by_st_area_with_desc_symbol
-    assert_equal([3, 1, 2], apply_id_order_scope(FooGeography.order_by_st_area(:desc)).to_a.collect(&:id))
+    assert_equal([3, 1, 2], FooGeography.order_by_st_area(:desc).to_a.collect(&:id))
   end
 end
 

@@ -116,6 +116,16 @@ you to use the actual Geos extensions in an unfettered way. If you wish to
 use the spatial extensions with versions of Rails prior to 3, see versions of
 the geos-extensions gem prior to version 0.3.0 where the split occured.
 
+=== Note About ActiveRecord 4.0.0
+
+Rails 4.0.0 introducted a backwards incompatible change involving `order`
+scopes where `ORDER BY` would be added in the opposite order compared to
+previous versions of Rails. This change was reverted in Rails 4.0.1. Because
+the change only lasted for a single version, we have decided that we will
+not be supporting Rails 4.0.0 and will only support versions of Rails that
+feature `order` scopes that are consistent with the behaviour prior to Rails
+4.0.0. This includes Rails 4.0.1 and above.
+
 == PostGIS and PostgreSQL Versions Supported
 
 As of this writing, things look good for PostgreSQL 9.1 and 9.2 for both

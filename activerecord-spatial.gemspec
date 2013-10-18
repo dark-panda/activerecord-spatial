@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/zoocasa/activerecord-spatial"
   s.require_paths = ["lib"]
 
-  s.add_dependency("rails", [">= 3.2"])
+  s.add_dependency("rails", [">= 3.2", "!= 4.0.0"])
   s.add_dependency("geos-extensions", [">= 0.3.0.dev"])
 end
 
