@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
   s.description = "ActiveRecord Spatial gives AR the ability to work with PostGIS columns."
   s.summary = s.description
   s.email = "code@zoocasa.com"
+  s.license = "MIT"
   s.extra_rdoc_files = [
     "README.rdoc"
   ]
