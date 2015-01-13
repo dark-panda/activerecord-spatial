@@ -93,7 +93,7 @@ module ActiveRecordSpatial
             def #{m}_columns
               if !defined?(@#{m}_columns) || @#{m}_columns.nil?
                 @#{m}_columns = ActiveRecordSpatial::#{m.capitalize}Column.where(
-                  :f_table_name => self.table_name
+                  f_table_name: self.table_name
                 ).to_a
                 @#{m}_columns.freeze
               end
@@ -253,7 +253,7 @@ module ActiveRecordSpatial
         # Creates column accessors for geometry columns only.
         def create_geometry_column_accessors!(options = {})
           options = {
-            :geometry_columns => true
+            geometry_columns: true
           }.merge(options)
 
           create_spatial_column_accessors!(options)
@@ -262,7 +262,7 @@ module ActiveRecordSpatial
         # Creates column accessors for geometry columns only.
         def create_geography_column_accessors!(options = {})
           options = {
-            :geography_columns => true
+            geography_columns: true
           }.merge(options)
 
           create_spatial_column_accessors!(options)
@@ -323,7 +323,7 @@ module ActiveRecordSpatial
         # are equivalent:
         #
         #  spatial_column_name(:wkt)
-        #  spatial_column_name(:format => :wkt)
+        #  spatial_column_name(format: :wkt)
         #  spatial_column_name_wkt
         def __spatial_column_name(options = {}); end
 

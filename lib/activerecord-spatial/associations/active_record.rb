@@ -25,18 +25,18 @@ module ActiveRecord
 
       def last_chain_scope(scope, table, reflection, owner, tracker, assoc_klass)
         geom_options = {
-          :class => assoc_klass
+          class: assoc_klass
         }
 
         if reflection.geom.is_a?(Hash)
           geom_options.merge!(
-            :value => owner[reflection.geom[:name]]
+            value: owner[reflection.geom[:name]]
           )
           geom_options.merge!(reflection.geom)
         else
           geom_options.merge!(
-            :value => owner[reflection.geom],
-            :name => reflection.geom
+            value: owner[reflection.geom],
+            name: reflection.geom
           )
         end
 

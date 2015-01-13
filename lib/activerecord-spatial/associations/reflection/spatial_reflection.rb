@@ -20,7 +20,7 @@ module ActiveRecord
         @geom = options[:geom]
         @foreign_geom = options[:foreign_geom]
         @relationship = options[:relationship].to_s
-        @scope_options = (options[:scope_options] || {}).merge(:column => foreign_geom)
+        @scope_options = (options[:scope_options] || {}).merge(column: foreign_geom)
       end
 
       def association_class

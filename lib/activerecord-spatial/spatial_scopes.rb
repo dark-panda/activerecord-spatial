@@ -71,14 +71,14 @@ module ActiveRecordSpatial
   #   When wrapping a geometry column in a function, you can set the name of
   #   the function and its methods like so:
   #
-  #     Foo.st_within(geom, :column => {
-  #       :name => :the_geom,
-  #       :wrapper => :centroid
+  #     Foo.st_within(geom, column: {
+  #       name: :the_geom,
+  #       wrapper: :centroid
   #     })
   #
-  #     Foo.st_within(geom, :column => {
-  #       :wrapper => {
-  #         :snap => [ 'POINT (0 0)', 1 ]
+  #     Foo.st_within(geom, column: {
+  #       wrapper: {
+  #         snap: [ 'POINT (0 0)', 1 ]
   #       }
   #     })
   #
@@ -131,8 +131,8 @@ module ActiveRecordSpatial
     extend ActiveSupport::Concern
 
     DEFAULT_OPTIONS = {
-      :column => ActiveRecordSpatial.default_column_name,
-      :use_index => true
+      column: ActiveRecordSpatial.default_column_name,
+      use_index: true
     }.freeze
 
     included do
@@ -145,7 +145,7 @@ module ActiveRecordSpatial
         src, line = <<-EOF, __LINE__ + 1
           scope :st_#{relationship}, lambda { |geom, options = {}|
             options = {
-              :geom_arg => geom
+              geom_arg: geom
             }.merge(options)
 
             unless geom.nil?
@@ -162,8 +162,8 @@ module ActiveRecordSpatial
         src, line = <<-EOF, __LINE__ + 1
           scope :st_#{relationship}, lambda { |geom, distance, options = {}|
             options = {
-              :geom_arg => geom,
-              :args => distance
+              geom_arg: geom,
+              args: distance
             }.merge(options)
 
             self.where(
@@ -191,7 +191,7 @@ module ActiveRecordSpatial
           scope :order_by_st_#{measurement}, lambda { |options = {}|
             if options.is_a?(Symbol)
               options = {
-                :desc => options
+                desc: options
               }
             end
 
@@ -209,12 +209,12 @@ module ActiveRecordSpatial
           scope :order_by_st_#{measurement}, lambda { |geom, options = {}|
             if options.is_a?(Symbol)
               options = {
-                :desc => options
+                desc: options
               }
             end
 
             options = {
-              :geom_arg => geom
+              geom_arg: geom
             }.merge(options)
 
             function_call = ActiveRecordSpatial::SpatialFunction.build!(self, '#{measurement}', options).to_sql
@@ -230,7 +230,7 @@ module ActiveRecordSpatial
         src, line = <<-EOF, __LINE__ + 1
           scope :order_by_st_#{measurement}, lambda { |argument, options = {}|
             options = {
-              :args => argument
+              args: argument
             }.merge(options)
 
             function_call = ActiveRecordSpatial::SpatialFunction.build!(self, '#{measurement}', options).to_sql
@@ -249,8 +249,8 @@ module ActiveRecordSpatial
           geom, densify_frac = args
 
           options = {
-            :geom_arg => geom,
-            :args => densify_frac
+            geom_arg: geom,
+            args: densify_frac
           }.merge(options)
 
           function_call = ActiveRecordSpatial::SpatialFunction.build!(
@@ -265,8 +265,8 @@ module ActiveRecordSpatial
 
         scope :order_by_st_distance_spheroid, lambda { |geom, spheroid, options = {}|
           options = {
-            :geom_arg => geom,
-            :args => spheroid
+            geom_arg: geom,
+            args: spheroid
           }.merge(options)
 
           function_call = ActiveRecordSpatial::SpatialFunction.build!(

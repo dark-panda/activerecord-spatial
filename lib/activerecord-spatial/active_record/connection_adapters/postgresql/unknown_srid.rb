@@ -3,13 +3,13 @@ module ActiveRecordSpatial
   UNKNOWN_SRIDS = begin
     if ActiveRecordSpatial::POSTGIS[:lib] >= '2.0'
       {
-        :geography => 0,
-        :geometry  => 0
+        geography: 0,
+        geometry: 0
       }.freeze
     else
       {
-        :geography =>  0,
-        :geometry  => -1
+        geography:  0,
+        geometry: -1
       }.freeze
     end
   end
