@@ -22,6 +22,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency("rails", [">= 4.0.1"])
-  s.add_dependency("geos-extensions", [">= 0.3.0.dev"])
+  s.add_dependency("geos-extensions", [">= 0.5"])
 end
 
