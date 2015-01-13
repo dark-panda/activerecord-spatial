@@ -9,12 +9,19 @@ end
 require 'rubygems'
 require 'minitest/autorun'
 require 'minitest/reporters'
+require 'rails'
 require 'active_support'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/dependencies'
 require 'active_record'
 require 'active_record/fixtures'
 require 'logger'
+
+begin
+  require 'active_record/../../test/cases/test_case'
+rescue LoadError
+  # no-op
+end
 
 require File.join(File.dirname(__FILE__), %w{ .. lib activerecord-spatial })
 
@@ -35,6 +42,7 @@ if defined?(Geos::FFIGeos)
   puts "Using #{Geos::FFIGeos.geos_library_paths.join(', ')}"
 end
 
+ActiveSupport::TestCase.test_order = :random
 ActiveRecord::Base.logger = Logger.new("debug.log") if ENV['ENABLE_LOGGER']
 ActiveRecord::Base.configurations = {
   'arunit' => {}
@@ -59,7 +67,7 @@ ActiveRecord::Base.configurations = {
   end
 end
 
-ActiveRecord::Base.establish_connection 'arunit'
+ActiveRecord::Base.establish_connection :arunit
 ARBC = ActiveRecord::Base.connection
 
 if postgresql_version = ARBC.select_rows('SELECT version()').first.first
@@ -168,6 +176,10 @@ class ActiveRecordSpatialTestCase < ActiveRecord::TestCase
 
   class << self
     def load_models(*args)
+      self.fixture_table_names = args.collect do |arg|
+        arg.to_s.pluralize
+      end
+
       options = args.extract_options!
 
       args.each do |model|
@@ -220,38 +232,67 @@ class ActiveRecordSpatialTestCase < ActiveRecord::TestCase
       [ 0, 0 ]
     ], cs.to_a)
   end
+
+  def assert_sql(*patterns_to_match)
+    ActiveRecord::SQLCounter.clear_log
+    yield
+    ActiveRecord::SQLCounter.log_all
+  ensure
+    failed_patterns = []
+    patterns_to_match.each do |pattern|
+      failed_patterns << pattern unless ActiveRecord::SQLCounter.log_all.any?{ |sql| pattern === sql }
+    end
+    assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map{ |p| p.inspect }.join(', ')} not found.#{ActiveRecord::SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{ActiveRecord::SQLCounter.log.join("\n")}"}"
+  end
+
+  def reflection_key(key)
+    if ActiveRecord::VERSION::STRING >= '4.2'
+      key.to_s
+    else
+      key
+    end
+  end
 end
 
 if !defined?(ActiveRecord::SQLCounter)
-  module ActiveRecord
-    class SQLCounter
-      cattr_accessor :ignored_sql
-      self.ignored_sql = [
-        /^PRAGMA (?!(table_info))/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/,
-        /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/,
-        /^SHOW max_identifier_length/, /^BEGIN/, /^COMMIT/, /^ROLLBACK/, /\WFROM pg_/
-      ]
-
-      cattr_accessor :log
-      self.log = []
-
-      attr_reader :ignore
-
-      def initialize(ignore = self.class.ignored_sql)
-        @ignore   = ignore
-      end
-
-      def call(name, start, finish, message_id, values)
-        sql = values[:sql]
-
-        # FIXME: this seems bad. we should probably have a better way to indicate
-        # the query was cached
-        return if 'CACHE' == values[:name] || ignore.any? { |x| x =~ sql }
-        self.class.log << sql
-      end
+  class ActiveRecord::SQLCounter
+    class << self
+      attr_accessor :ignored_sql, :log, :log_all
+      def clear_log; self.log = []; self.log_all = []; end
     end
 
-    ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
+    self.clear_log
+
+    self.ignored_sql = [/^PRAGMA/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^SHOW max_identifier_length/, /^BEGIN/, /^COMMIT/]
+
+    # FIXME: this needs to be refactored so specific database can add their own
+    # ignored SQL, or better yet, use a different notification for the queries
+    # instead examining the SQL content.
+    oracle_ignored     = [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im, /^\s*select .* from all_constraints/im, /^\s*select .* from all_tab_cols/im]
+    mysql_ignored      = [/^SHOW TABLES/i, /^SHOW FULL FIELDS/, /^SHOW CREATE TABLE /i]
+    postgresql_ignored = [/^\s*select\b.*\bfrom\b.*pg_namespace\b/im, /^\s*select\b.*\battname\b.*\bfrom\b.*\bpg_attribute\b/im, /^SHOW search_path/i]
+    sqlite3_ignored =    [/^\s*SELECT name\b.*\bFROM sqlite_master/im]
+
+    [oracle_ignored, mysql_ignored, postgresql_ignored, sqlite3_ignored].each do |db_ignored_sql|
+      ignored_sql.concat db_ignored_sql
+    end
+
+    attr_reader :ignore
+
+    def initialize(ignore = Regexp.union(self.class.ignored_sql))
+      @ignore = ignore
+    end
+
+    def call(name, start, finish, message_id, values)
+      sql = values[:sql]
+
+      # FIXME: this seems bad. we should probably have a better way to indicate
+      # the query was cached
+      return if 'CACHE' == values[:name]
+
+      self.class.log_all << sql
+      self.class.log << sql unless ignore =~ sql
+    end
   end
 end
 

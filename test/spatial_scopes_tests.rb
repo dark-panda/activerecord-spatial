@@ -420,7 +420,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
     assert_equal([1, 2], values)
   end
 
-    def test_relationship_with_column_wrapper_and_options
+  def test_relationship_with_column_wrapper_and_options
     values = nil
 
     assert_sql(/ST_snap\("foos"."the_geom", 'POINT \(0 0\)', 1.0\)/) do

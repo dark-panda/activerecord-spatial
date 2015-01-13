@@ -12,12 +12,18 @@ class DefaultIntersectsRelationshipTest < ActiveRecordSpatialTestCase
   end
 
   def test_reflection
-    assert_equal(:has_many, Foo.reflections[:bars].macro)
-    assert_equal(:intersects, Foo.reflections[:bars].options[:relationship])
+    assert_equal(:has_many, Foo.reflections[reflection_key(:bars)].macro)
+    assert_equal(:intersects, Foo.reflections[reflection_key(:bars)].options[:relationship])
   end
 
   def test_association
-    assert_equal([ 3 ], Foo.first.bars.collect(&:id).sort)
+    values = nil
+
+    assert_sql(/ST_intersects\('#{REGEXP_WKB_HEX}'::geometry, "bars"\."the_geom"/) do
+      values = Foo.first.bars.collect(&:id).sort
+    end
+
+    assert_equal([ 3 ], values)
   end
 end
 
@@ -50,8 +56,8 @@ class RelationshipsTest < ActiveRecordSpatialTestCase
         has_many_spatially :bars, :relationship => relationship
       end
 
-      assert_equal(:has_many, Foo.reflections[:bars].macro)
-      assert_equal(relationship, Foo.reflections[:bars].options[:relationship])
+      assert_equal(:has_many, Foo.reflections[reflection_key(:bars)].macro)
+      assert_equal(relationship, Foo.reflections[reflection_key(:bars)].options[:relationship])
       assert_equal(ids, Foo.first.bars.collect(&:id).sort)
     end
   end
@@ -86,8 +92,8 @@ class RelationshipsWithSelfTest < ActiveRecordSpatialTestCase
         has_many_spatially :foos, :relationship => relationship
       end
 
-      assert_equal(:has_many, Foo.reflections[:foos].macro)
-      assert_equal(relationship, Foo.reflections[:foos].options[:relationship])
+      assert_equal(:has_many, Foo.reflections[reflection_key(:foos)].macro)
+      assert_equal(relationship, Foo.reflections[reflection_key(:foos)].options[:relationship])
       assert_equal(ids, Foo.first.foos.collect(&:id).sort)
     end
   end
@@ -124,10 +130,10 @@ class RelationshipsWithForeignGeomTest < ActiveRecordSpatialTestCase
           :foreign_geom => :the_other_geom
       end
 
-      assert_equal(:has_many, Foo.reflections[:bars].macro)
-      assert_equal(relationship, Foo.reflections[:bars].options[:relationship])
-      assert_equal(:the_geom, Foo.reflections[:bars].options[:geom])
-      assert_equal(:the_other_geom, Foo.reflections[:bars].options[:foreign_geom])
+      assert_equal(:has_many, Foo.reflections[reflection_key(:bars)].macro)
+      assert_equal(relationship, Foo.reflections[reflection_key(:bars)].options[:relationship])
+      assert_equal(:the_geom, Foo.reflections[reflection_key(:bars)].options[:geom])
+      assert_equal(:the_other_geom, Foo.reflections[reflection_key(:bars)].options[:foreign_geom])
       assert_equal(ids, Foo.first.bars.collect(&:id).sort)
     end
   end
@@ -164,10 +170,10 @@ class RelationshipsWithGeomTest < ActiveRecordSpatialTestCase
           :geom => :the_other_geom
       end
 
-      assert_equal(:has_many, Foo.reflections[:bars].macro)
-      assert_equal(relationship, Foo.reflections[:bars].options[:relationship])
-      assert_equal(:the_other_geom, Foo.reflections[:bars].options[:geom])
-      assert_equal(:the_geom, Foo.reflections[:bars].options[:foreign_geom])
+      assert_equal(:has_many, Foo.reflections[reflection_key(:bars)].macro)
+      assert_equal(relationship, Foo.reflections[reflection_key(:bars)].options[:relationship])
+      assert_equal(:the_other_geom, Foo.reflections[reflection_key(:bars)].options[:geom])
+      assert_equal(:the_geom, Foo.reflections[reflection_key(:bars)].options[:foreign_geom])
       assert_equal(ids, Foo.first.bars.collect(&:id).sort)
     end
   end
@@ -235,7 +241,7 @@ class PreloadTest < ActiveRecordSpatialTestCase
       end
     end
 
-    assert_equal([ 1, 1, 2], values)
+    assert_equal([ 1, 1, 2 ], values)
   end
 
   def test_with_eager_loading
@@ -308,7 +314,7 @@ class OrderingTest < ActiveRecordSpatialTestCase
   def test_reordering
     assert_equal([ 2, 1 ], Foo.first.bars.reorder('bars.id DESC').collect(&:id))
   end
-end
+end if ActiveRecord::VERSION::STRING < "4.1"
 
 class PolymorphicAssociationsTest < ActiveRecordSpatialTestCase
   def self.before_suite
@@ -424,52 +430,37 @@ class ClassNameOptionTest < ActiveRecordSpatialTestCase
   end
 end
 
-class ConditionsOptionTest < ActiveRecordSpatialTestCase
-  def self.before_suite
-    load_models(:foo, :bar)
+class ScopesTest < ActiveRecordSpatialTestCase
+  if ActiveRecord::VERSION::STRING >= '4.0'
+    def self.before_suite
+      load_models(:foo, :bar)
 
-    Foo.class_eval do
-      has_many_spatially :bars,
-        :relationship => :disjoint,
-        :conditions => {
-          :bars => {
-            :id => 3
-          }
-        }
-    end
-  end
-
-  def test_conditions
-    assert_equal([], Foo.first.bars.collect(&:id))
-    assert_equal([], Foo.includes(:bars).first.bars.collect(&:id))
-  end
-end
-
-class IncludeOptionTest < ActiveRecordSpatialTestCase
-  def self.before_suite
-    load_models(:blort, :foo, :bar)
-
-    Foo.class_eval do
-      has_many :blorts
-    end
-
-    Bar.class_eval do
-      has_many_spatially :foos,
-        :include => :blorts
-    end
-  end
-
-  def test_includes
-    skip("Removed from AR 4") if ActiveRecord::VERSION::MAJOR >= 4
-
-    values = nil
-    assert_queries(3) do
-      assert_sql(/SELECT\s+"blorts"\.\*\s+FROM\s+"blorts"\s+WHERE\s+"blorts"\."foo_id"\s+IN\s+\(.+\)/) do
-        values = Bar.first.foos.collect(&:id)
+      Foo.class_eval do
+        has_many_spatially :bars, -> {
+          where(:bars => { :id => 3 })
+        }, :relationship => :disjoint
       end
     end
+  end
 
-    assert_equal([ 3 ], values)
+  def test_scopes_without_eager_loading
+    values = nil
+
+    assert_sql(/SELECT "bars".* FROM "bars"\s+WHERE \(ST_disjoint\('#{REGEXP_WKB_HEX}'::geometry, "bars"."the_geom"\)\) AND "bars"."id" = 3/) do
+      values = Foo.first.bars.collect(&:id)
+    end
+
+    assert_equal([], values)
+  end
+
+  def test_scopes_with_eager_loading
+    values = nil
+
+    assert_sql(/SELECT "bars"\.\*, array_to_string\(array_agg\("__spatial_ids_join__"."id"\), ','\) AS "__spatial_ids__" FROM "bars" INNER JOIN "foos" AS "__spatial_ids_join__" ON \(ST_disjoint\("__spatial_ids_join__"."the_geom", "bars"."the_geom"\)\) WHERE "bars"."id" = 3 AND "__spatial_ids_join__"\."id" IN \(.+\) GROUP BY "bars"\."id"/) do
+      values = Foo.includes(:bars).first.bars.collect(&:id)
+    end
+
+    assert_equal([], values)
   end
 end
 
@@ -671,6 +662,6 @@ class BothGeomWrapperAndOptionsWithMixedSRIDsTest < ActiveRecordSpatialTestCase
         Foo.first.bars.to_a
       end
     end
-  end if ActiveRecord::VERSION::MAJOR >= 4
+  end
 end
 
