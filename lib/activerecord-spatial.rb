@@ -1,8 +1,6 @@
 
 require 'geos-extensions'
 
-require 'activerecord-spatial/active_record/connection_adapters/postgresql/adapter_extensions'
-
 module ActiveRecordSpatial
   BASE_PATH = File.dirname(__FILE__)
 
@@ -28,5 +26,6 @@ module ActiveRecordSpatial
   end
 end
 
+require 'activerecord-spatial/active_record/connection_adapters/postgresql/adapter_extensions'
 require 'activerecord-spatial/active_record'
 

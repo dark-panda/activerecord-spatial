@@ -2,8 +2,8 @@
 module ActiveRecordSpatial
   class SpatialFunction
     DEFAULT_OPTIONS = {
-      :column => ActiveRecordSpatial.default_column_name,
-      :use_index => true
+      column: ActiveRecordSpatial.default_column_name,
+      use_index: true
     }.freeze
 
     def initialize(klass)
@@ -18,10 +18,12 @@ module ActiveRecordSpatial
       options = default_options(args.extract_options!)
 
       geom = options.fetch(:geom_arg, args.first)
-      args = Array.wrap(options.fetch(:args, args.from(1)))
+      args = Array.wrap(options.fetch(:args, args.from(1))).collect do |arg|
+        arel_quoted_value(arg)
+      end
 
-      column_name = self.column_name(options[:column])
-      first_geom_arg = self.wrap_column_or_geometry(
+      column_name = column_name(options[:column])
+      first_geom_arg = wrap_column_or_geometry(
         @klass.arel_table[column_name],
         options[:column]
       )
@@ -34,7 +36,7 @@ module ActiveRecordSpatial
         unless geom.is_a?(Hash)
           geom_arg = read_geos(geom, column_srid)
           geom_srid = read_geom_srid(geom_arg, column_type)
-          geom_args << self.set_srid_or_transform(column_srid, geom_srid, geom_arg, column_type)
+          geom_args << set_srid_or_transform(column_srid, geom_srid, geom_arg, column_type)
         else
           klass = if geom[:class]
             geom[:class]
@@ -49,11 +51,11 @@ module ActiveRecordSpatial
             geom_srid = read_geom_srid(geom_arg, column_type)
           else
             geom_arg = geom
-            geom_srid = klass.srid_for(self.column_name(geom[:column]))
+            geom_srid = klass.srid_for(column_name(geom[:column]))
           end
 
-          transformed_geom = self.set_srid_or_transform(column_srid, geom_srid, geom_arg, column_type)
-          geom_args << self.wrap_column_or_geometry(transformed_geom, geom)
+          transformed_geom = set_srid_or_transform(column_srid, geom_srid, geom_arg, column_type)
+          geom_args << wrap_column_or_geometry(transformed_geom, geom)
         end
       end
 
@@ -73,7 +75,7 @@ module ActiveRecordSpatial
       ret
     end
 
-    protected
+    private
       def set_srid_or_transform(column_srid, geom_srid, geom, type)
         geom_param = case geom
           when Geos::Geometry
@@ -87,7 +89,7 @@ module ActiveRecordSpatial
               geom[:class_name].classify.constantize.quoted_table_name
             end
 
-            Arel.sql("#{table_name}.#{@klass.connection.quote_table_name(self.column_name(geom[:column]))}")
+            Arel.sql("#{table_name}.#{@klass.connection.quote_table_name(column_name(geom[:column]))}")
           else
             raise ArgumentError.new("Expected either a Geos::Geometry or a Hash.")
         end
@@ -136,7 +138,7 @@ module ActiveRecordSpatial
           end
 
           DEFAULT_OPTIONS.merge({
-            :desc => desc
+            desc: desc
           }).merge(options || {})
         else
           DEFAULT_OPTIONS.merge(options || {})
@@ -169,10 +171,26 @@ module ActiveRecordSpatial
 
           Arel::Nodes::NamedFunction.new(
             function_name(wrapper),
-            [ column_name_or_geometry, *args ]
+            [ column_name_or_geometry, *args.collect { |arg| arel_quoted_value(arg) } ]
           )
         else
           column_name_or_geometry
+        end
+      end
+
+      def arel_nodes_quoted?
+        if defined?(@arel_nodes_quoted)
+          @arel_nodes_quoted
+        else
+          @arel_nodes_quoted = defined?(Arel::Nodes::Quoted)
+        end
+      end
+
+      def arel_quoted_value(value)
+        if arel_nodes_quoted?
+          Arel::Nodes::Quoted.new(value)
+        else
+          value
         end
       end
 
