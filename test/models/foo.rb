@@ -1,5 +1,5 @@
 
-if !ARBC.table_exists?('foos')
+if !ActiveRecordSpatialTestCase.table_exists?('foos')
   ActiveRecord::Migration.create_table(:foos) do |t|
     t.text :name
   end

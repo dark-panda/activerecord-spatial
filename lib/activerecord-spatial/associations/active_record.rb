@@ -1,146 +1,91 @@
-# encoding: UTF-8
 
 module ActiveRecord
-  module Associations
-    class Builder::Spatial < Builder::HasMany #:nodoc:
-      def macro
-        SPATIAL_MACRO
-      end
-
-      def valid_options
-        super + VALID_SPATIAL_OPTIONS - INVALID_SPATIAL_OPTIONS
-      end
-    end
-
+  module Associations #:nodoc:
     class Preloader #:nodoc:
       class SpatialAssociation < HasMany #:nodoc:
-        def records_for(ids)
-          table_name = reflection.quoted_table_name
-          join_name = model.quoted_table_name
-          column = %{#{SPATIAL_JOIN_QUOTED_NAME}.#{model.quoted_primary_key}}
-          geom = {
-            :class => model,
-            :table_alias => SPATIAL_JOIN_NAME
-          }
+        private
 
-          if reflection.options[:geom].is_a?(Hash)
-            geom.merge!(reflection.options[:geom])
-          else
-            geom[:column] = reflection.options[:geom]
+          def load_records(&block)
+            return {} if owner_keys.empty?
+
+            slices = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
+            @preloaded_records = slices.flat_map do |slice|
+              records_for(slice).load(&block)
+            end
+
+            @preloaded_records.each_with_object({}) do |record, memo|
+              keys = record[association_key_name].split(',')
+              keys.each do |key|
+                memo[key] ||= []
+                memo[key] << record
+              end
+            end
           end
 
-          scoped = scope.
-            select(%{array_to_string(array_agg(#{column}), ',') AS "#{SPATIAL_FIELD_ALIAS}"}).
-            joins(
-              "INNER JOIN #{join_name} AS #{SPATIAL_JOIN_QUOTED_NAME} ON (" <<
-                klass.send("st_#{reflection.options[:relationship]}",
-                  geom,
-                  (reflection.options[:scope_options] || {}).merge(
-                    :column => reflection.options[:foreign_geom]
-                  )
-                ).where_values.join(' AND ') <<
-              ")"
-            ).
-            where(model.arel_table.alias(SPATIAL_JOIN_NAME)[model.primary_key].in(ids)).
-            group(table[klass.primary_key])
+          def associated_records_by_owner(preloader)
+            records = load_records do |record|
+              record[association_key_name].split(',').each do |key|
+                owner = owners_by_key[convert_key(key)]
+                association = owner.association(reflection.name)
+                association.set_inverse_instance(record)
+              end
+            end
 
-          if reflection.options[:conditions]
-            scoped = scoped.where(reflection.options[:conditions])
+            owners.each_with_object({}) do |owner, result|
+              result[owner] = records[convert_key(owner[owner_key_name])] || []
+            end
           end
-
-          scoped
-        end
       end
     end
 
-    class AssociationScope #:nodoc:
-      def add_constraints_with_spatial(scope)
-        return add_constraints_without_spatial(scope) if !self.association.is_a?(SpatialAssociation)
+    class SpatialAssociation < HasManyAssociation #:nodoc:
+      def association_scope
+        if klass
+          @association_scope ||= SpatialAssociationScope.scope(self, klass.connection)
+        end
+      end
 
-        tables = construct_tables
+      private
+        def get_records
+          scope.to_a
+        end
+    end
 
-        chain.each_with_index do |reflection, i|
-          table, foreign_table = tables.shift, tables.first
+    class SpatialAssociationScope < AssociationScope #:nodoc:
+      INSTANCE = create
 
-          geom_options = {
-            :class => self.association.klass
-          }
+      class << self
+        def scope(association, connection)
+          INSTANCE.scope(association, connection)
+        end
+      end
 
-          if self.association.geom.is_a?(Hash)
-            geom_options.merge!(
-              :value => owner[self.association.geom[:name]]
-            )
-            geom_options.merge!(self.association.geom)
-          else
-            geom_options.merge!(
-              :value => owner[self.association.geom],
-              :name => self.association.geom
-            )
-          end
+      def last_chain_scope(scope, table, reflection, owner, assoc_klass)
+        geom_options = {
+          class: assoc_klass
+        }
 
-          if reflection == chain.last
-            scope = scope.send("st_#{self.association.relationship}", geom_options, self.association.scope_options)
+        if reflection.geom.is_a?(Hash)
+          geom_options.merge!(
+            value: owner[reflection.geom[:name]]
+          )
+          geom_options.merge!(reflection.geom)
+        else
+          geom_options.merge!(
+            value: owner[reflection.geom],
+            name: reflection.geom
+          )
+        end
 
-            if reflection.type
-              scope = scope.where(table[reflection.type].eq(owner.class.base_class.name))
-            end
-          else
-            constraint = scope.where(
-              scope.send(
-                "st_#{self.association.relationship}",
-                owner[self.association.foreign_geom],
-                self.association.scope_options
-              ).where_values
-            ).join(' AND ')
+        scope = scope.send("st_#{reflection.relationship}", geom_options, reflection.scope_options)
 
-            if reflection.type
-              type = chain[i + 1].klass.base_class.name
-              constraint = table[reflection.type].eq(type).and(constraint)
-            end
-
-            scope = scope.joins(join(foreign_table, constraint))
-          end
-
-          if reflection.options[:conditions].present?
-            scope = scope.where(reflection.options[:conditions])
-          end
-
-          # Exclude the scope of the association itself, because that
-          # was already merged in the #scope method.
-          scope_chain[i].each do |scope_chain_item|
-            klass = i == 0 ? self.klass : reflection.klass
-            item  = eval_scope(klass, scope_chain_item)
-
-            if scope_chain_item == self.reflection.scope
-              scope.merge! item.except(:where, :includes)
-            end
-
-            scope.includes! item.includes_values
-            scope.where_values += item.where_values
-            scope.order_values |= item.order_values
-          end
+        if reflection.type
+          polymorphic_type = transform_value(owner.class.base_class.name)
+          scope = scope.where(table.name => { reflection.type => polymorphic_type })
         end
 
         scope
       end
-      alias_method_chain :add_constraints, :spatial
     end
   end
 end
-
-
-module ActiveRecordSpatial::Associations
-  module ClassMethods #:nodoc:
-    def has_many_spatially(name, *args, &extension)
-      options = build_options(args.extract_options!)
-      scope = args.first
-
-      if !ActiveRecordSpatial::SpatialScopeConstants::RELATIONSHIPS.include?(options[:relationship].to_s)
-        raise ArgumentError.new(%{Invalid spatial relationship "#{options[:relationship]}", expected one of #{ActiveRecordSpatial::SpatialScopeConstants::RELATIONSHIPS.inspect}})
-      end
-
-      ActiveRecord::Associations::Builder::Spatial.build(self, name, scope, options, &extension)
-    end
-  end
-end
-

@@ -13,14 +13,14 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
   end
 
   def test_covers
-    ids_tester(:st_covers, 'POINT(0 0)', [ 3 ], :conditions => {
-      :id => [ 3 ]
+    ids_tester(:st_covers, 'POINT(0 0)', [ 3 ], conditions: {
+      id: [ 3 ]
     })
   end
 
   def test_coveredby
-    ids_tester(:st_coveredby, 'POLYGON((-6 -6, -6 6, 6 6, 6 -6, -6 -6))', [ 1 ], :conditions => {
-      :id => [ 1, 2 ]
+    ids_tester(:st_coveredby, 'POLYGON((-6 -6, -6 6, 6 6, 6 -6, -6 -6))', [ 1 ], conditions: {
+      id: [ 1, 2 ]
     })
   end
 
@@ -34,15 +34,15 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
 
   def test_allow_null
     begin
-      foo = FooGeography.create(:name => 'four')
-      ids_tester(:st_covers, [ 'POINT(3 3)', { :allow_null => true } ], [ 3, foo.id ])
+      foo = FooGeography.create(name: 'four')
+      ids_tester(:st_covers, [ 'POINT(3 3)', { allow_null: true } ], [ 3, foo.id ])
     ensure
       FooGeography.find_by_name('four').destroy
     end
   end
 
   def test_with_column
-    assert_equal([3], FooGeography.st_covers('POINT(7 7)', :column => :the_other_geom).to_a.collect(&:id).sort)
+    assert_equal([3], FooGeography.st_covers('POINT(7 7)', column: :the_other_geom).to_a.collect(&:id).sort)
   end
 
   def test_with_srid_switching
@@ -54,7 +54,7 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
   end
 
   def test_with_srid_transform
-    assert_equal([3], FooGeography.st_covers('SRID=4269; POINT(7 7)', :column => :the_other_geom).to_a.collect(&:id).sort)
+    assert_equal([3], FooGeography.st_covers('SRID=4269; POINT(7 7)', column: :the_other_geom).to_a.collect(&:id).sort)
   end
 
   def test_order_by_st_distance
@@ -62,7 +62,7 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_distance_desc
-    assert_equal([2, 1, 3], FooGeography.order_by_st_distance('POINT(1 1)', :desc => true).to_a.collect(&:id))
+    assert_equal([2, 1, 3], FooGeography.order_by_st_distance('POINT(1 1)', desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_area
@@ -70,7 +70,7 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_area_desc
-    assert_equal([3, 1, 2], FooGeography.order_by_st_area(:desc => true).to_a.collect(&:id))
+    assert_equal([3, 1, 2], FooGeography.order_by_st_area(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_length
@@ -84,7 +84,7 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
       [3, 1, 2]
     end
 
-    assert_equal(expected, FooGeography.order_by_st_length(:desc => true).where('true = true').to_a.collect(&:id))
+    assert_equal(expected, FooGeography.order_by_st_length(desc: true).where('true = true').to_a.collect(&:id))
   end
 
   def test_order_by_st_perimeter
@@ -96,7 +96,7 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
   def test_order_by_st_perimeter_desc
     skip('requires PostGIS 2+') unless FooGeography.respond_to?(:order_by_st_perimeter)
 
-    assert_equal([3, 1, 2], FooGeography.order_by_st_perimeter(:desc => true).to_a.collect(&:id))
+    assert_equal([3, 1, 2], FooGeography.order_by_st_perimeter(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_area_with_desc_symbol

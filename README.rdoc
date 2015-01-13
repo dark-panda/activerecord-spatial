@@ -107,24 +107,14 @@ See the test/database.yml file for example settings.
 
 == ActiveRecord Versions Supported
 
-We're starting to standardize on Rails 3+ for our purposes, so future versions
-this gem function on versions of Rails 3 and above. To use spatial scopes on
+We're starting to standardize on Rails 5 for our purposes, so future versions
+this gem function on versions of Rails 5 and above. To use spatial scopes on
 previous versions of ActiveRecord, see our geos-extensions gem available at
 https://github.com/dark-panda/geos-extensions . We have pulled the ActiveRecord
 extensions out of that gem and are instead packaging them here, thus allowing
 you to use the actual Geos extensions in an unfettered way. If you wish to
-use the spatial extensions with versions of Rails prior to 3, see versions of
-the geos-extensions gem prior to version 0.3.0 where the split occured.
-
-=== Note About ActiveRecord 4.0.0
-
-Rails 4.0.0 introducted a backwards incompatible change involving `order`
-scopes where `ORDER BY` would be added in the opposite order compared to
-previous versions of Rails. This change was reverted in Rails 4.0.1. Because
-the change only lasted for a single version, we have decided that we will
-not be supporting Rails 4.0.0 and will only support versions of Rails that
-feature `order` scopes that are consistent with the behaviour prior to Rails
-4.0.0. This includes Rails 4.0.1 and above.
+use the spatial extensions with versions of Rails prior to 5, see versions of
+the ActiveRecordSpatial gem prior to version 1.0.0.
 
 == PostGIS and PostgreSQL Versions Supported
 
@@ -176,4 +166,3 @@ most projects.
 
 This gem is licensed under an MIT-style license. See the +MIT-LICENSE+ file for
 details.
-

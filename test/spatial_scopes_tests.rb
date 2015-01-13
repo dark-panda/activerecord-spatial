@@ -76,8 +76,8 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
 
   def test_allow_null
     begin
-      foo = Foo.create(:name => 'four')
-      ids_tester(:st_contains, [ 'POINT(3 3)', { :allow_null => true } ], [ 3, foo.id ])
+      foo = Foo.create(name: 'four')
+      ids_tester(:st_contains, [ 'POINT(3 3)', { allow_null: true } ], [ 3, foo.id ])
     ensure
       Foo.find_by_name('four').destroy
     end
@@ -88,7 +88,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_with_column
-    assert_equal([1, 2, 3], Foo.st_disjoint('POINT(100 100)', :column => :the_other_geom).to_a.collect(&:id).sort)
+    assert_equal([1, 2, 3], Foo.st_disjoint('POINT(100 100)', column: :the_other_geom).to_a.collect(&:id).sort)
   end
 
   def test_with_srid_switching
@@ -101,8 +101,8 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_with_srid_transform
-    assert_equal([1, 2, 3], Foo.st_disjoint('SRID=4269; POINT(100 100)', :column => :the_other_geom).to_a.collect(&:id).sort)
-    assert_equal([3], Foo.st_contains('SRID=4269; POINT(7 7)', :column => :the_other_geom).to_a.collect(&:id).sort)
+    assert_equal([1, 2, 3], Foo.st_disjoint('SRID=4269; POINT(100 100)', column: :the_other_geom).to_a.collect(&:id).sort)
+    assert_equal([3], Foo.st_contains('SRID=4269; POINT(7 7)', column: :the_other_geom).to_a.collect(&:id).sort)
   end
 
   def test_order_by_st_distance
@@ -110,7 +110,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_distance_desc
-    assert_equal([2, 1, 3], Foo.order_by_st_distance('POINT(1 1)', :desc => true).to_a.collect(&:id))
+    assert_equal([2, 1, 3], Foo.order_by_st_distance('POINT(1 1)', desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_distance_sphere
@@ -118,7 +118,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_distance_sphere_desc
-    assert_equal([2, 1, 3], Foo.order_by_st_distance_sphere('POINT(1 1)', :desc => true).to_a.collect(&:id))
+    assert_equal([2, 1, 3], Foo.order_by_st_distance_sphere('POINT(1 1)', desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_max_distance
@@ -126,7 +126,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_max_distance_desc
-    assert_equal([2, 3, 1], Foo.order_by_st_maxdistance('POINT(1 1)', :desc => true).to_a.collect(&:id))
+    assert_equal([2, 3, 1], Foo.order_by_st_maxdistance('POINT(1 1)', desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_area
@@ -134,7 +134,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_area_desc
-    assert_equal([3, 1, 2], Foo.order_by_st_area(:desc => true).to_a.collect(&:id))
+    assert_equal([3, 1, 2], Foo.order_by_st_area(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_ndims
@@ -142,7 +142,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_ndims_desc
-    assert_equal([1, 2, 3], Foo.order_by_st_ndims(:desc => true).to_a.collect(&:id))
+    assert_equal([1, 2, 3], Foo.order_by_st_ndims(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_npoints
@@ -150,7 +150,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_npoints_desc
-    assert_equal([3, 1, 2], Foo.order_by_st_npoints(:desc => true).to_a.collect(&:id))
+    assert_equal([3, 1, 2], Foo.order_by_st_npoints(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_nrings
@@ -158,7 +158,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_nrings_desc
-    assert_equal([3, 1, 2], Foo.order_by_st_nrings(:desc => true).to_a.collect(&:id))
+    assert_equal([3, 1, 2], Foo.order_by_st_nrings(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_numgeometries
@@ -166,7 +166,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_numgeometries_desc
-    assert_equal([1, 2, 3], Foo.order_by_st_numgeometries(:desc => true).to_a.collect(&:id))
+    assert_equal([1, 2, 3], Foo.order_by_st_numgeometries(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_numinteriorring
@@ -174,7 +174,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_numinteriorring_desc
-    assert_equal([1, 2, 3], Foo.order_by_st_numinteriorring(:desc => true).to_a.collect(&:id))
+    assert_equal([1, 2, 3], Foo.order_by_st_numinteriorring(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_numinteriorrings
@@ -182,7 +182,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_numinteriorrings_desc
-    assert_equal([1, 2, 3], Foo.order_by_st_numinteriorrings(:desc => true).to_a.collect(&:id))
+    assert_equal([1, 2, 3], Foo.order_by_st_numinteriorrings(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_numpoints
@@ -190,7 +190,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_numpoints_desc
-    assert_equal([1, 2, 3], Foo.order_by_st_numpoints(:desc => true).to_a.collect(&:id))
+    assert_equal([1, 2, 3], Foo.order_by_st_numpoints(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_length3d
@@ -198,7 +198,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_length3d_desc
-    assert_equal([1, 2, 3], Foo.order_by_st_length3d(:desc => true).to_a.collect(&:id))
+    assert_equal([1, 2, 3], Foo.order_by_st_length3d(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_length
@@ -206,7 +206,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_length_desc
-    assert_equal([1, 2, 3], Foo.order_by_st_length(:desc => true).to_a.collect(&:id))
+    assert_equal([1, 2, 3], Foo.order_by_st_length(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_length2d
@@ -214,7 +214,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_length2d_desc
-    assert_equal([1, 2, 3], Foo.order_by_st_length2d(:desc => true).to_a.collect(&:id))
+    assert_equal([1, 2, 3], Foo.order_by_st_length2d(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_length3d_spheroid
@@ -228,7 +228,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
       [1, 2, 3]
     end
 
-    assert_equal(expected, Foo.order_by_st_length3d_spheroid('SPHEROID["WGS 84", 6378137, 298.257223563]', :desc => true).to_a.collect(&:id))
+    assert_equal(expected, Foo.order_by_st_length3d_spheroid('SPHEROID["WGS 84", 6378137, 298.257223563]', desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_length2d_spheroid
@@ -236,7 +236,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_length2d_spheroid_desc
-    assert_equal([3, 1, 2], Foo.order_by_st_length2d_spheroid('SPHEROID["WGS 84", 6378137, 298.257223563]', :desc => true).to_a.collect(&:id))
+    assert_equal([3, 1, 2], Foo.order_by_st_length2d_spheroid('SPHEROID["WGS 84", 6378137, 298.257223563]', desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_length_spheroid
@@ -250,7 +250,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
       [1, 2, 3]
     end
 
-    assert_equal(expected, Foo.order_by_st_length_spheroid('SPHEROID["WGS 84", 6378137, 298.257223563]', :desc => true).to_a.collect(&:id))
+    assert_equal(expected, Foo.order_by_st_length_spheroid('SPHEROID["WGS 84", 6378137, 298.257223563]', desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_perimeter
@@ -258,7 +258,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_perimeter_desc
-    assert_equal([3, 1, 2], Foo.order_by_st_perimeter(:desc => true).to_a.collect(&:id))
+    assert_equal([3, 1, 2], Foo.order_by_st_perimeter(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_perimeter2d
@@ -266,7 +266,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_perimeter2d_desc
-    assert_equal([3, 1, 2], Foo.order_by_st_perimeter2d(:desc => true).to_a.collect(&:id))
+    assert_equal([3, 1, 2], Foo.order_by_st_perimeter2d(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_perimeter3d
@@ -274,7 +274,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_perimeter3d_desc
-    assert_equal([3, 1, 2], Foo.order_by_st_perimeter3d(:desc => true).to_a.collect(&:id))
+    assert_equal([3, 1, 2], Foo.order_by_st_perimeter3d(desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_hausdorffdistance
@@ -282,7 +282,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_hausdorffdistance_desc
-    assert_equal([2, 3, 1], Foo.order_by_st_hausdorffdistance('POINT(1 1)', :desc => true).to_a.collect(&:id))
+    assert_equal([2, 3, 1], Foo.order_by_st_hausdorffdistance('POINT(1 1)', desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_hausdorffdistance_with_densify_frac
@@ -294,7 +294,7 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_order_by_st_distance_spheroid_desc
-    assert_equal([1, 3, 2], Foo.order_by_st_distance_spheroid('POINT(10 10)', 'SPHEROID["WGS 84", 6378137, 298.257223563]', :desc => true).to_a.collect(&:id))
+    assert_equal([1, 3, 2], Foo.order_by_st_distance_spheroid('POINT(10 10)', 'SPHEROID["WGS 84", 6378137, 298.257223563]', desc: true).to_a.collect(&:id))
   end
 
   def test_order_by_st_area_with_desc_symbol
@@ -349,9 +349,9 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
     assert_sql(/ST_envelope\("foos"."the_geom"\)/) do
       values = Foo.
         order_by_st_perimeter(
-          :desc => true,
-          :column => {
-            :wrapper => :envelope
+          desc: true,
+          column: {
+            wrapper: :envelope
           }
         ).to_a.collect(&:id)
     end
@@ -365,10 +365,10 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
     assert_sql(/ST_geometryn\("foos"."the_geom", 1\)/) do
       values = Foo.
         order_by_st_perimeter(
-          :desc => true,
-          :column => {
-            :wrapper => {
-              :geometryn => 1
+          desc: true,
+          column: {
+            wrapper: {
+              geometryn: 1
             }
           }
         ).to_a.collect(&:id)
@@ -383,10 +383,10 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
     assert_sql(/ST_snap\("foos"."the_geom", 'POINT \(0 0\)', 1.0\)/) do
       values = Foo.
         order_by_st_perimeter(
-          :desc => true,
-          :column => {
-            :wrapper => {
-              :snap => [
+          desc: true,
+          column: {
+            wrapper: {
+              snap: [
                 'POINT (0 0)',
                 1.0
               ]
@@ -405,8 +405,8 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
       values = Foo.
         st_within(
           'POLYGON((-5 -5, 5 10, 20 20, 10 5, -5 -5))',
-          :column => {
-            :wrapper => :centroid
+          column: {
+            wrapper: :centroid
           }
         ).to_a.collect(&:id)
     end
@@ -421,9 +421,9 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
       values = Foo.
         st_within(
           'POLYGON((-5 -5, 5 10, 20 20, 10 5, -5 -5))',
-          :column => {
-            :wrapper => {
-              :geometryn => 1
+          column: {
+            wrapper: {
+              geometryn: 1
             }
           }
         ).to_a.collect(&:id)
@@ -432,16 +432,16 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
     assert_equal([1, 2], values)
   end
 
-    def test_relationship_with_column_wrapper_and_options
+  def test_relationship_with_column_wrapper_and_options
     values = nil
 
     assert_sql(/ST_snap\("foos"."the_geom", 'POINT \(0 0\)', 1.0\)/) do
       values = Foo.
         st_within(
           'POLYGON((-5 -5, 5 10, 20 20, 10 5, -5 -5))',
-          :column => {
-            :wrapper => {
-              :snap => [
+          column: {
+            wrapper: {
+              snap: [
                 'POINT (0 0)',
                 1.0
               ]

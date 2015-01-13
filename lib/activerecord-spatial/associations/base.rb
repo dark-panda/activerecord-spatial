@@ -1,21 +1,6 @@
 
 module ActiveRecord
   module Associations #:nodoc:
-    class SpatialAssociation < HasManyAssociation
-      attr_reader :geom, :foreign_geom, :relationship, :scope_options
-
-      def initialize(*args)
-        super
-
-        @geom = self.options[:geom]
-        @foreign_geom = self.options[:foreign_geom]
-        @relationship = self.options[:relationship].to_s
-        @scope_options = (self.options[:scope_options] || {}).merge({
-          :column => @foreign_geom
-        })
-      end
-    end
-
     class Builder::Spatial < Builder::HasMany #:nodoc:
       SPATIAL_MACRO = :has_many
 
@@ -28,10 +13,13 @@ module ActiveRecord
         :inverse_of
       ].freeze
 
-      private
-        def dependency_method_name
-          "spatially_#{self.relationship}_dependent_for_#{name}"
-        end
+      def macro
+        SPATIAL_MACRO
+      end
+
+      def self.valid_options(options)
+        super + VALID_SPATIAL_OPTIONS - INVALID_SPATIAL_OPTIONS
+      end
     end
 
     class Preloader #:nodoc:
@@ -39,54 +27,16 @@ module ActiveRecord
         SPATIAL_FIELD_ALIAS = '__spatial_ids__'
         SPATIAL_JOIN_NAME = '__spatial_ids_join__'
         SPATIAL_JOIN_QUOTED_NAME = %{"#{SPATIAL_JOIN_NAME}"}
+      end
 
-        private
-          def associated_records_by_owner
-            owners_map = owners_by_key
-            owner_keys = owners_map.keys.compact
-
-            if klass.nil? || owner_keys.empty?
-              records = []
-            else
-              sliced  = owner_keys.each_slice(model.connection.in_clause_length || owner_keys.size)
-              records = sliced.map { |slice| records_for(slice) }.flatten
-            end
-
-            records_by_owner = Hash[owners.map { |owner| [owner, []] }]
-
-            records.each do |record|
-              record[SPATIAL_FIELD_ALIAS].split(',').each do |owner_key|
-                owners_map[owner_key].each do |owner|
-                  records_by_owner[owner] << record
-                end
-              end
-            end
-
-            records_by_owner
-          end
-        end
-
-        def preloader_for_with_spatial(reflection)
-          if reflection.options[:relationship]
-            SpatialAssociation
-          else
-            preloader_for_without_spatial(reflection)
-          end
-        end
-        alias_method_chain :preloader_for, :spatial
-    end
-  end
-
-  module Reflection #:nodoc:
-    class AssociationReflection < MacroReflection #:nodoc:
-      def association_class_with_spatial
-        if self.options[:relationship]
-           Associations::SpatialAssociation
+      def preloader_for_with_spatial(reflection, *args)
+        if reflection.is_a?(ActiveRecord::Reflection::SpatialReflection)
+          SpatialAssociation
         else
-          association_class_without_spatial
+          preloader_for_without_spatial(reflection, *args)
         end
       end
-      alias_method_chain :association_class, :spatial
+      alias_method_chain :preloader_for, :spatial
     end
   end
 end
@@ -98,12 +48,13 @@ end
 #
 #   class Neighbourhood < ActiveRecord::Base
 #     has_many_spatially :cities,
-#       :relationship => :contains
+#       relationship: :contains
 #   end
 #
 #   class City < ActiveRecord::Base
-#     has_many_spatially :neighbourhoods,
-#       :relationship => :within
+#     has_many_spatially :neighbourhoods, -> {
+#       where('canonical = true')
+#     }, relationship: :within
 #   end
 #
 #   Neighbourhood.first.cities
@@ -138,7 +89,7 @@ end
 #   table. The default here is again +:the_geom+.
 # * +:scope_options+ - these are options passed directly to the SpatialScopes
 #   module and as such the options are the same as are available there. The
-#   default value here is <tt>{ :invert => true }</tt>, as we want our
+#   default value here is <tt>{ invert: true }</tt>, as we want our
 #   spatial relationships to say "Foo spatially contains many Bars" and
 #   therefore the relationship in SQL becomes
 #   <tt>ST_contains("foos"."the_geom", "bars"."the_geom")</tt>.
@@ -156,11 +107,11 @@ module ActiveRecordSpatial::Associations
   extend ActiveSupport::Concern
 
   DEFAULT_OPTIONS = {
-    :relationship => :intersects,
-    :geom => ActiveRecordSpatial.default_column_name,
-    :foreign_geom => ActiveRecordSpatial.default_column_name,
-    :scope_options => {
-      :invert => true
+    relationship: :intersects,
+    geom: ActiveRecordSpatial.default_column_name,
+    foreign_geom: ActiveRecordSpatial.default_column_name,
+    scope_options: {
+      invert: true
     }
   }.freeze
 
@@ -179,4 +130,3 @@ module ActiveRecordSpatial::Associations
     private :build_options
   end
 end
-

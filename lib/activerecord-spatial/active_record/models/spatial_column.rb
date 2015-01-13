@@ -11,7 +11,7 @@ module ActiveRecordSpatial
       self.inheritance_column = 'nonexistent_column_name_type'
 
       belongs_to :spatial_ref_sys,
-        :foreign_key => :srid
+        foreign_key: :srid
     end
 
     def readonly?

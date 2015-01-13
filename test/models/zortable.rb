@@ -1,5 +1,5 @@
 
-if !ARBC.table_exists?('zortables')
+if !ActiveRecordSpatialTestCase.table_exists?('zortables')
   ActiveRecord::Migration.create_table(:zortables) do |t|
     t.text :name
     t.text :zortable_type
