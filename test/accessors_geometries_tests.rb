@@ -62,8 +62,8 @@ class AccessorsGeometriesTests < ActiveRecordSpatialTestCase
 
   def test_geos_create
     foo = Foo.create!(
-      :name => 'test_geos_create',
-      :the_geom => Geos.read(POINT_WKT)
+      name: 'test_geos_create',
+      the_geom: Geos.read(POINT_WKT)
     )
 
     foo.reload
@@ -72,8 +72,8 @@ class AccessorsGeometriesTests < ActiveRecordSpatialTestCase
 
   def test_wkt_create
     foo = Foo.create!(
-      :name => 'test_wkt_create',
-      :the_geom => POINT_WKT
+      name: 'test_wkt_create',
+      the_geom: POINT_WKT
     )
 
     foo.reload
@@ -82,8 +82,8 @@ class AccessorsGeometriesTests < ActiveRecordSpatialTestCase
 
   def test_wkb_create
     foo = Foo.create!(
-      :name => 'test_wkb_create',
-      :the_geom => POINT_WKB
+      name: 'test_wkb_create',
+      the_geom: POINT_WKB
     )
 
     foo.reload
@@ -92,8 +92,8 @@ class AccessorsGeometriesTests < ActiveRecordSpatialTestCase
 
   def test_ewkt_create_with_srid_4326
     foo = Foo.create!(
-      :name => 'test_ewkt_create_with_srid_4326',
-      :the_other_geom => POINT_EWKT
+      name: 'test_ewkt_create_with_srid_4326',
+      the_other_geom: POINT_EWKT
     )
 
     foo.reload
@@ -102,8 +102,8 @@ class AccessorsGeometriesTests < ActiveRecordSpatialTestCase
 
   def test_create_with_no_srid_converting_to_4326
     foo = Foo.create!(
-      :name => 'test_ewkt_create_with_no_srid_converting_to_4326',
-      :the_other_geom => POINT_WKT
+      name: 'test_ewkt_create_with_no_srid_converting_to_4326',
+      the_other_geom: POINT_WKT
     )
 
     foo.reload
@@ -112,8 +112,8 @@ class AccessorsGeometriesTests < ActiveRecordSpatialTestCase
 
   def test_create_with_no_srid_converting_to_minus_1
     foo = Foo.create!(
-      :name => 'test_ewkt_create_with_no_srid_converting_to_minus_1',
-      :the_geom => POINT_EWKT
+      name: 'test_ewkt_create_with_no_srid_converting_to_minus_1',
+      the_geom: POINT_EWKT
     )
 
     foo.reload
@@ -123,16 +123,16 @@ class AccessorsGeometriesTests < ActiveRecordSpatialTestCase
   def test_create_with_converting_from_900913_to_4326
     assert_raise(ActiveRecordSpatial::GeometryColumns::CantConvertSRID) do
       Foo.create!(
-        :name => 'test_create_with_converting_from_900913_to_4326',
-        :the_other_geom => "SRID=900913; #{POINT_WKT}"
+        name: 'test_create_with_converting_from_900913_to_4326',
+        the_other_geom: "SRID=900913; #{POINT_WKT}"
       )
     end
   end
 
   def test_ewkt_create_with_srid_default
     foo = Foo.create!(
-      :name => 'test_ewkt_create_with_srid_default',
-      :the_other_geom => POINT_EWKT_WITH_DEFAULT
+      name: 'test_ewkt_create_with_srid_default',
+      the_other_geom: POINT_EWKT_WITH_DEFAULT
     )
 
     foo.reload
@@ -141,8 +141,8 @@ class AccessorsGeometriesTests < ActiveRecordSpatialTestCase
 
   def test_ewkb_create
     foo = Foo.create!(
-      :name => 'test_ewkb_create',
-      :the_other_geom => POINT_EWKB
+      name: 'test_ewkb_create',
+      the_other_geom: POINT_EWKB
     )
 
     foo.reload

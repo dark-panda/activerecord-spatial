@@ -2,8 +2,8 @@
 module ActiveRecordSpatial
   class SpatialFunction
     DEFAULT_OPTIONS = {
-      :column => ActiveRecordSpatial.default_column_name,
-      :use_index => true
+      column: ActiveRecordSpatial.default_column_name,
+      use_index: true
     }.freeze
 
     def initialize(klass)
@@ -138,7 +138,7 @@ module ActiveRecordSpatial
           end
 
           DEFAULT_OPTIONS.merge({
-            :desc => desc
+            desc: desc
           }).merge(options || {})
         else
           DEFAULT_OPTIONS.merge(options || {})

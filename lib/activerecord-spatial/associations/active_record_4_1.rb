@@ -29,18 +29,18 @@ module ActiveRecord
             table, foreign_table = tables.shift, tables.first
 
             geom_options = {
-              :class => reflection.klass
+              class: reflection.klass
             }
 
             if reflection.geom.is_a?(Hash)
               geom_options.merge!(
-                :value => owner[reflection.geom[:name]]
+                value: owner[reflection.geom[:name]]
               )
               geom_options.merge!(reflection.geom)
             else
               geom_options.merge!(
-                :value => owner[reflection.geom],
-                :name => reflection.geom
+                value: owner[reflection.geom],
+                name: reflection.geom
               )
             end
 

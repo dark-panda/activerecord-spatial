@@ -22,8 +22,8 @@ module ActiveRecord
             join_name = model.quoted_table_name
             column = %{#{SPATIAL_JOIN_QUOTED_NAME}.#{model.quoted_primary_key}}
             geom = {
-              :class => model,
-              :table_alias => SPATIAL_JOIN_NAME
+              class: model,
+              table_alias: SPATIAL_JOIN_NAME
             }
 
             if reflection.options[:geom].is_a?(Hash)
@@ -39,7 +39,7 @@ module ActiveRecord
                   klass.send("st_#{reflection.options[:relationship]}",
                     geom,
                     (reflection.options[:scope_options] || {}).merge(
-                      :column => reflection.options[:foreign_geom]
+                      column: reflection.options[:foreign_geom]
                     )
                   ).where_values.join(' AND ') <<
                 ")"

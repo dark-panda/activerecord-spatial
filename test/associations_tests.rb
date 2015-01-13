@@ -33,18 +33,18 @@ class RelationshipsTest < ActiveRecordSpatialTestCase
   end
 
   {
-    :contains => [],
-    :containsproperly => [],
-    :covers => [],
-    :coveredby => [ 3 ],
-    :crosses => [],
-    :disjoint => [ 1, 2 ],
-    :equals => [],
-    :intersects => [ 3 ],
-    :orderingequals => [],
-    :overlaps => [],
-    :touches => [],
-    :within => [ 3 ],
+    contains: [],
+    containsproperly: [],
+    covers: [],
+    coveredby: [ 3 ],
+    crosses: [],
+    disjoint: [ 1, 2 ],
+    equals: [],
+    intersects: [ 3 ],
+    orderingequals: [],
+    overlaps: [],
+    touches: [],
+    within: [ 3 ],
     :'3dintersects' => [ 3 ]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
@@ -53,7 +53,7 @@ class RelationshipsTest < ActiveRecordSpatialTestCase
       Foo.reflections.delete(:bars)
 
       Foo.class_eval do
-        has_many_spatially :bars, :relationship => relationship
+        has_many_spatially :bars, relationship: relationship
       end
 
       assert_equal(:has_many, Foo.reflections[reflection_key(:bars)].macro)
@@ -69,18 +69,18 @@ class RelationshipsWithSelfTest < ActiveRecordSpatialTestCase
   end
 
   {
-    :contains => [ 1 ],
-    :containsproperly => [ 1 ],
-    :covers => [ 1 ],
-    :coveredby => [ 1, 3 ],
-    :crosses => [],
-    :disjoint => [ 2 ],
-    :equals => [ 1 ],
-    :intersects => [ 1, 3 ],
-    :orderingequals => [ 1 ],
-    :overlaps => [],
-    :touches => [],
-    :within => [ 1, 3 ],
+    contains: [ 1 ],
+    containsproperly: [ 1 ],
+    covers: [ 1 ],
+    coveredby: [ 1, 3 ],
+    crosses: [],
+    disjoint: [ 2 ],
+    equals: [ 1 ],
+    intersects: [ 1, 3 ],
+    orderingequals: [ 1 ],
+    overlaps: [],
+    touches: [],
+    within: [ 1, 3 ],
     :'3dintersects' => [ 1, 3 ]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
@@ -89,7 +89,7 @@ class RelationshipsWithSelfTest < ActiveRecordSpatialTestCase
       Foo.reflections.delete(:foos)
 
       Foo.class_eval do
-        has_many_spatially :foos, :relationship => relationship
+        has_many_spatially :foos, relationship: relationship
       end
 
       assert_equal(:has_many, Foo.reflections[reflection_key(:foos)].macro)
@@ -105,18 +105,18 @@ class RelationshipsWithForeignGeomTest < ActiveRecordSpatialTestCase
   end
 
   {
-    :contains => [],
-    :containsproperly => [],
-    :covers => [],
-    :coveredby => [ 3 ],
-    :crosses => [],
-    :disjoint => [ 1, 2 ],
-    :equals => [],
-    :intersects => [ 3 ],
-    :orderingequals => [],
-    :overlaps => [],
-    :touches => [],
-    :within => [ 3 ],
+    contains: [],
+    containsproperly: [],
+    covers: [],
+    coveredby: [ 3 ],
+    crosses: [],
+    disjoint: [ 1, 2 ],
+    equals: [],
+    intersects: [ 3 ],
+    orderingequals: [],
+    overlaps: [],
+    touches: [],
+    within: [ 3 ],
     :'3dintersects' => [ 3 ]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
@@ -126,8 +126,8 @@ class RelationshipsWithForeignGeomTest < ActiveRecordSpatialTestCase
 
       Foo.class_eval do
         has_many_spatially :bars,
-          :relationship => relationship,
-          :foreign_geom => :the_other_geom
+          relationship: relationship,
+          foreign_geom: :the_other_geom
       end
 
       assert_equal(:has_many, Foo.reflections[reflection_key(:bars)].macro)
@@ -145,18 +145,18 @@ class RelationshipsWithGeomTest < ActiveRecordSpatialTestCase
   end
 
   {
-    :contains => [],
-    :containsproperly => [],
-    :covers => [],
-    :coveredby => [ 3 ],
-    :crosses => [],
-    :disjoint => [ 1, 2 ],
-    :equals => [],
-    :intersects => [ 3 ],
-    :orderingequals => [],
-    :overlaps => [],
-    :touches => [ 3 ],
-    :within => [],
+    contains: [],
+    containsproperly: [],
+    covers: [],
+    coveredby: [ 3 ],
+    crosses: [],
+    disjoint: [ 1, 2 ],
+    equals: [],
+    intersects: [ 3 ],
+    orderingequals: [],
+    overlaps: [],
+    touches: [ 3 ],
+    within: [],
     :'3dintersects' => [ 3 ]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
@@ -166,8 +166,8 @@ class RelationshipsWithGeomTest < ActiveRecordSpatialTestCase
 
       Foo.class_eval do
         has_many_spatially :bars,
-          :relationship => relationship,
-          :geom => :the_other_geom
+          relationship: relationship,
+          geom: :the_other_geom
       end
 
       assert_equal(:has_many, Foo.reflections[reflection_key(:bars)].macro)
@@ -199,8 +199,8 @@ class WithCounterSqlTest < ActiveRecordSpatialTestCase
     assert_raise(ArgumentError) do
       Foo.class_eval do
         has_many_spatially :bars,
-          :class_name => 'Bar',
-          :counter_sql => "SELECT COUNT(*) bars.* FROM bars"
+          class_name: 'Bar',
+          counter_sql: "SELECT COUNT(*) bars.* FROM bars"
       end
     end
   end
@@ -212,9 +212,9 @@ class ScopeOptionsTest < ActiveRecordSpatialTestCase
 
     Foo.class_eval do
       has_many_spatially :bars,
-        :class_name => 'Bar',
-        :scope_options => {
-          :use_index => false
+        class_name: 'Bar',
+        scope_options: {
+          use_index: false
         }
     end
   end
@@ -264,8 +264,8 @@ class PreloadWithOtherGeomTest < ActiveRecordSpatialTestCase
 
     Foo.class_eval do
       has_many_spatially :bars,
-        :class_name => 'Bar',
-        :geom => :the_other_geom
+        class_name: 'Bar',
+        geom: :the_other_geom
     end
   end
 
@@ -302,8 +302,8 @@ class OrderingTest < ActiveRecordSpatialTestCase
 
     Foo.class_eval do
       has_many_spatially :bars,
-        :relationship => :disjoint,
-        :order => 'ST_area(the_geom)'
+        relationship: :disjoint,
+        order: 'ST_area(the_geom)'
     end
   end
 
@@ -322,13 +322,13 @@ class PolymorphicAssociationsTest < ActiveRecordSpatialTestCase
 
     Foo.class_eval do
       has_many_spatially :zortables,
-        :as => :zortable
+        as: :zortable
     end
 
     Bar.class_eval do
       has_many_spatially :zortables,
-        :as => :zortable,
-        :geom => :the_other_geom
+        as: :zortable,
+        geom: :the_other_geom
     end
   end
 
@@ -383,18 +383,18 @@ class PolymorphicAssociationsWithRelationshipsTest < ActiveRecordSpatialTestCase
   end
 
   {
-    :contains => [ 1 ],
-    :containsproperly => [ 1 ],
-    :covers => [ 1 ],
-    :coveredby => [ 1, 7 ],
-    :crosses => [],
-    :disjoint => [ 2, 3 ],
-    :equals => [ 1 ],
-    :intersects => [ 1, 7 ],
-    :orderingequals => [ 1 ],
-    :overlaps => [],
-    :touches => [],
-    :within => [ 1, 7 ],
+    contains: [ 1 ],
+    containsproperly: [ 1 ],
+    covers: [ 1 ],
+    coveredby: [ 1, 7 ],
+    crosses: [],
+    disjoint: [ 2, 3 ],
+    equals: [ 1 ],
+    intersects: [ 1, 7 ],
+    orderingequals: [ 1 ],
+    overlaps: [],
+    touches: [],
+    within: [ 1, 7 ],
     :'3dintersects' => [ 1, 7 ]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
@@ -404,8 +404,8 @@ class PolymorphicAssociationsWithRelationshipsTest < ActiveRecordSpatialTestCase
 
       Foo.class_eval do
         has_many_spatially :zortables,
-          :as => :zortable,
-          :relationship => relationship
+          as: :zortable,
+          relationship: relationship
       end
 
       assert_equal(ids, Foo.first.zortables.collect(&:id).sort)
@@ -420,7 +420,7 @@ class ClassNameOptionTest < ActiveRecordSpatialTestCase
 
     Foo.class_eval do
       has_many_spatially :blops,
-        :class_name => 'Bar'
+        class_name: 'Bar'
     end
   end
 
@@ -437,8 +437,8 @@ class ScopesTest < ActiveRecordSpatialTestCase
 
       Foo.class_eval do
         has_many_spatially :bars, -> {
-          where(:bars => { :id => 3 })
-        }, :relationship => :disjoint
+          where(bars: { id: 3 })
+        }, relationship: :disjoint
       end
     end
   end
@@ -470,9 +470,9 @@ class GeomWrapperTest < ActiveRecordSpatialTestCase
 
     Foo.class_eval do
       has_many_spatially :bars,
-        :class_name => 'Bar',
-        :geom => {
-          :wrapper => :envelope
+        class_name: 'Bar',
+        geom: {
+          wrapper: :envelope
         }
     end
   end
@@ -504,9 +504,9 @@ class ForeignGeomWrapperTest < ActiveRecordSpatialTestCase
 
     Foo.class_eval do
       has_many_spatially :bars,
-        :class_name => 'Bar',
-        :foreign_geom => {
-          :wrapper => :envelope
+        class_name: 'Bar',
+        foreign_geom: {
+          wrapper: :envelope
         }
     end
   end
@@ -538,12 +538,12 @@ class BothGeomWrapperTest < ActiveRecordSpatialTestCase
 
     Foo.class_eval do
       has_many_spatially :bars,
-        :class_name => 'Bar',
-        :geom => {
-          :wrapper => :convexhull
+        class_name: 'Bar',
+        geom: {
+          wrapper: :convexhull
         },
-        :foreign_geom => {
-          :wrapper => :envelope
+        foreign_geom: {
+          wrapper: :envelope
         }
     end
   end
@@ -575,13 +575,13 @@ class BothGeomWrapperWithMixedSRIDsTest < ActiveRecordSpatialTestCase
 
     Foo.class_eval do
       has_many_spatially :bars,
-        :class_name => 'Bar',
-        :geom => {
-          :wrapper => :convexhull
+        class_name: 'Bar',
+        geom: {
+          wrapper: :convexhull
         },
-        :foreign_geom => {
-          :wrapper => :centroid,
-          :name => :the_other_geom
+        foreign_geom: {
+          wrapper: :centroid,
+          name: :the_other_geom
         }
     end
   end
@@ -613,15 +613,15 @@ class BothGeomWrapperAndOptionsWithMixedSRIDsTest < ActiveRecordSpatialTestCase
 
     Foo.class_eval do
       has_many_spatially :bars,
-        :class_name => 'Bar',
-        :geom => {
-          :wrapper => :convexhull
+        class_name: 'Bar',
+        geom: {
+          wrapper: :convexhull
         },
-        :foreign_geom => {
-          :wrapper => {
-            :buffer => 100
+        foreign_geom: {
+          wrapper: {
+            buffer: 100
           },
-          :name => :the_other_geom
+          name: :the_other_geom
         }
     end
   end

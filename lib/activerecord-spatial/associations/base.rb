@@ -48,13 +48,13 @@ end
 #
 #   class Neighbourhood < ActiveRecord::Base
 #     has_many_spatially :cities,
-#       :relationship => :contains
+#       relationship: :contains
 #   end
 #
 #   class City < ActiveRecord::Base
 #     has_many_spatially :neighbourhoods, -> {
 #       where('canonical = true')
-#     }, :relationship => :within
+#     }, relationship: :within
 #   end
 #
 #   Neighbourhood.first.cities
@@ -89,7 +89,7 @@ end
 #   table. The default here is again +:the_geom+.
 # * +:scope_options+ - these are options passed directly to the SpatialScopes
 #   module and as such the options are the same as are available there. The
-#   default value here is <tt>{ :invert => true }</tt>, as we want our
+#   default value here is <tt>{ invert: true }</tt>, as we want our
 #   spatial relationships to say "Foo spatially contains many Bars" and
 #   therefore the relationship in SQL becomes
 #   <tt>ST_contains("foos"."the_geom", "bars"."the_geom")</tt>.
@@ -107,11 +107,11 @@ module ActiveRecordSpatial::Associations
   extend ActiveSupport::Concern
 
   DEFAULT_OPTIONS = {
-    :relationship => :intersects,
-    :geom => ActiveRecordSpatial.default_column_name,
-    :foreign_geom => ActiveRecordSpatial.default_column_name,
-    :scope_options => {
-      :invert => true
+    relationship: :intersects,
+    geom: ActiveRecordSpatial.default_column_name,
+    foreign_geom: ActiveRecordSpatial.default_column_name,
+    scope_options: {
+      invert: true
     }
   }.freeze
 
