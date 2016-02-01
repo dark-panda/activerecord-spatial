@@ -255,7 +255,7 @@ if !defined?(ActiveRecord::SQLCounter)
   end
 end
 
-class SpatialTestRunner < MiniTest::Reporters::SpecReporter
+class SpatialTestRunner < Minitest::Reporters::SpecReporter
   def before_suite(suite)
     super(suite)
     suite.before_suite if suite.respond_to?(:before_suite)
@@ -267,5 +267,5 @@ class SpatialTestRunner < MiniTest::Reporters::SpecReporter
   end
 end
 
-MiniTest::Reporters.use!(SpatialTestRunner.new)
+Minitest::Reporters.use!(SpatialTestRunner.new)
 
