@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.authors = ["J Smith"]
   s.description = "ActiveRecord Spatial gives AR the ability to work with PostGIS columns."
   s.summary = s.description
-  s.email = "code@zoocasa.com"
+  s.email = "dark.panda@gmail.com"
   s.license = "MIT"
   s.extra_rdoc_files = [
     "README.rdoc"
@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.files = `git ls-files`.split($\)
   s.executables = s.files.grep(%r{^bin/}).map { |f| File.basename(f) }
   s.test_files = s.files.grep(%r{^(test|spec|features)/})
-  s.homepage = "https://github.com/zoocasa/activerecord-spatial"
+  s.homepage = "https://github.com/dark-panda/activerecord-spatial"
   s.require_paths = ["lib"]
 
   s.add_dependency("rails", [">= 3.2", "!= 4.0.0"])
