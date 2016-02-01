@@ -3,7 +3,7 @@
 
 ActiveRecord Spatial is a collection of spatially-aware extensions that help
 ActiveRecord work the spatial tables. This gem used to be integrated with our
-geos-extensions gem available at https://github.com/zoocasa/geos-extensions but
+geos-extensions gem available at https://github.com/dark-panda/geos-extensions but
 we have separated the two and extended ActiveRecord Spatial's capabilities
 in the process.
 
@@ -110,7 +110,7 @@ See the test/database.yml file for example settings.
 We're starting to standardize on Rails 3+ for our purposes, so future versions
 this gem function on versions of Rails 3 and above. To use spatial scopes on
 previous versions of ActiveRecord, see our geos-extensions gem available at
-https://github.com/zoocasa/geos-extensions . We have pulled the ActiveRecord
+https://github.com/dark-panda/geos-extensions . We have pulled the ActiveRecord
 extensions out of that gem and are instead packaging them here, thus allowing
 you to use the actual Geos extensions in an unfettered way. If you wish to
 use the spatial extensions with versions of Rails prior to 3, see versions of
