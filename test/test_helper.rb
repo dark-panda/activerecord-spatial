@@ -173,6 +173,7 @@ class ActiveRecordSpatialTestCase < ActiveRecord::TestCase
       args.each do |model|
         model = model.to_s
         klass = model.classify
+        fixtures model.tableize
 
         ActiveSupport::Dependencies.load_file(BASE_PATH.join("models/#{model}.rb"), [ klass ])
       end
