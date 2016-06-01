@@ -14,6 +14,7 @@ require 'active_support/core_ext/module/aliasing'
 require 'active_support/dependencies'
 require 'active_record'
 require 'active_record/fixtures'
+require 'active_record/test_case'
 require 'logger'
 
 require File.join(File.dirname(__FILE__), %w{ .. lib activerecord-spatial })
