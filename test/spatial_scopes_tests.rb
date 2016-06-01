@@ -4,7 +4,7 @@ require 'test_helper'
 
 class SpatialScopesTests < ActiveRecordSpatialTestCase
   def self.before_suite
-    load_models(:foo, :foo3d)
+    load_models(:foo, :foobar, :foo3d)
   end
 
   def ids_tester(method, args, ids = [], klass = Foo)
@@ -58,6 +58,11 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
 
   def test_within
     ids_tester(:st_within, 'POLYGON((-5 -5, 5 10, 20 20, 10 5, -5 -5))', [ 1, 2 ])
+  end
+
+  def test_subclass_within
+    geoms = Foobar.st_within(*Array.wrap('POLYGON((-5 -5, 5 10, 20 20, 10 5, -5 -5))'), klass: Foobar)
+    assert_equal([1, 2], geoms.collect(&:id).sort)
   end
 
   def test_dwithin
