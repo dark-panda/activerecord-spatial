@@ -145,12 +145,13 @@ module ActiveRecordSpatial
         src, line = <<-EOF, __LINE__ + 1
           scope :st_#{relationship}, lambda { |geom, options = {}|
             options = {
-              geom_arg: geom
+              geom_arg: geom,
+              klass: self
             }.merge(options)
 
             unless geom.nil?
-              self.where(
-                ActiveRecordSpatial::SpatialFunction.build!(self, '#{relationship}', options).to_sql
+              where(
+                ActiveRecordSpatial::SpatialFunction.build!(options[:klass], '#{relationship}', options).to_sql
               )
             end
           }
