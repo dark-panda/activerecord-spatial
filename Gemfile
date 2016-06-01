@@ -14,6 +14,7 @@ gem "minitest"
 gem "minitest-reporters"
 gem "guard-minitest"
 gem "simplecov"
+gem "activerecord-testcase"
 
 if File.exists?('Gemfile.local')
   instance_eval File.read('Gemfile.local')

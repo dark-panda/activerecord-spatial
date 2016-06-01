@@ -18,7 +18,7 @@ require 'active_record/fixtures'
 require 'logger'
 
 begin
-  require 'active_record/../../test/cases/test_case'
+  require 'active_record/test_case'
 rescue LoadError
   # no-op
 end
