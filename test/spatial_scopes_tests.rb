@@ -304,13 +304,25 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   def test_3dintersects
     skip('ST_3dintersects is unavailable') unless Foo3d.respond_to?(:st_3dintersects)
 
-    ids_tester(:st_3dintersects, 'LINESTRING(-5 -5 -5, 10 10 10)', [ 1, 3 ], Foo3d)
+    expected = if ActiveRecordSpatial::POSTGIS[:lib] >= '2.2'
+      [1, 2, 3]
+    else
+      [1, 3]
+    end
+
+    ids_tester(:st_3dintersects, 'LINESTRING(-5 -5 -5, 10 10 10)', expected, Foo3d)
   end
 
   def test_3ddistance
     skip('ST_3ddistance is unavailable') unless Foo3d.respond_to?(:order_by_st_3ddistance)
 
-    assert_equal([3, 2, 1], Foo3d.order_by_st_3ddistance('POINT(10 10)').to_a.collect(&:id))
+    expected = if ActiveRecordSpatial::POSTGIS[:lib] >= '2.2'
+      [2, 3, 1]
+    else
+      [3, 2, 1]
+    end
+
+    assert_equal(expected, Foo3d.order_by_st_3ddistance('POINT(10 10)').to_a.collect(&:id))
   end
 
   def test_3dmaxdistance
