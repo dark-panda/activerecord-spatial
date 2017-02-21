@@ -2,21 +2,21 @@ source 'https://rubygems.org'
 
 gemspec
 
-if RUBY_PLATFORM == "java"
-  gem "activerecord-jdbcpostgresql-adapter"
+if RUBY_PLATFORM == 'java'
+  gem 'activerecord-jdbcpostgresql-adapter'
 else
-  gem "pg"
+  gem 'pg'
 end
 
-gem "rdoc", "~> 3.12"
-gem "rake", "~> 10.0"
-gem "minitest", "~> 4.7"
-gem "minitest-reporters"
-gem "guard-minitest"
-gem "simplecov"
-gem "activerecord-testcase"
+gem 'activerecord-testcase'
+gem 'guard'
+gem 'guard-minitest'
+gem 'minitest'
+gem 'minitest-reporters'
+gem 'rake'
+gem 'rdoc'
+gem 'simplecov'
 
 if File.exists?('Gemfile.local')
   instance_eval File.read('Gemfile.local')
 end
-
