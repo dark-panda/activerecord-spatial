@@ -271,7 +271,9 @@ module ActiveRecordSpatial
 
           function_call = ActiveRecordSpatial::SpatialFunction.build!(
             self,
-            'distance_spheroid',
+            ActiveRecordSpatial::POSTGIS[:lib] >= '2.2' ?
+              'distancespheroid' :
+              'distance_spheroid',
             options
           ).to_sql
           function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
