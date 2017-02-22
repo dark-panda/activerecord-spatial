@@ -22,7 +22,7 @@ class GeographyColumnTests < ActiveRecordSpatialTestCase
   end
 
   def test_coord_dimension_for
-    assert_equal(nil, FooGeography.coord_dimension_for(:the_geom))
+    assert_nil(FooGeography.coord_dimension_for(:the_geom))
     assert_equal(2, FooGeography.coord_dimension_for(:the_other_geom))
   end
 
