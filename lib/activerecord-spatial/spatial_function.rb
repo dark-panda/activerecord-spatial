@@ -77,7 +77,7 @@ module ActiveRecordSpatial
       def set_srid_or_transform(column_srid, geom_srid, geom, type)
         geom_param = case geom
           when Geos::Geometry
-            Arel.sql("#{@klass.connection.quote(geom.to_ewkb)}::#{type}")
+            Arel.sql("#{@klass.connection.quote(geom.to_ewkb)}::geometry")
           when Hash
             table_name = if geom[:table_alias]
               @klass.connection.quote_table_name(geom[:table_alias])
@@ -92,7 +92,7 @@ module ActiveRecordSpatial
             raise ArgumentError.new("Expected either a Geos::Geometry or a Hash.")
         end
 
-        sql = if type != :geography && column_srid != geom_srid
+        sql = if column_srid != geom_srid
           if column_srid == ActiveRecordSpatial::UNKNOWN_SRIDS[type] || geom_srid == ActiveRecordSpatial::UNKNOWN_SRIDS[type]
             Arel::Nodes::NamedFunction.new(
               function_name('SetSRID'),
@@ -199,4 +199,3 @@ module ActiveRecordSpatial
     end
   end
 end
-
