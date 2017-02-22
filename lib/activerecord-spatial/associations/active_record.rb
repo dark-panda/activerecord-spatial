@@ -22,7 +22,7 @@ module ActiveRecord
             end
           end
 
-          def associated_records_by_owner(preloader)
+          def associated_records_by_owner(_preloader)
             records = load_records do |record|
               record[association_key_name].split(',').each do |key|
                 owner = owners_by_key[convert_key(key)]
@@ -40,12 +40,13 @@ module ActiveRecord
 
     class SpatialAssociation < HasManyAssociation #:nodoc:
       def association_scope
-        if klass
-          @association_scope ||= SpatialAssociationScope.scope(self, klass.connection)
-        end
+        return unless klass
+
+        @association_scope ||= SpatialAssociationScope.scope(self, klass.connection)
       end
 
       private
+
         def get_records
           scope.to_a
         end
@@ -66,15 +67,11 @@ module ActiveRecord
         }
 
         if reflection.geom.is_a?(Hash)
-          geom_options.merge!(
-            value: owner[reflection.geom[:name]]
-          )
+          geom_options[:value] = owner[reflection.geom[:name]]
           geom_options.merge!(reflection.geom)
         else
-          geom_options.merge!(
-            value: owner[reflection.geom],
-            name: reflection.geom
-          )
+          geom_options[:value] = owner[reflection.geom]
+          geom_options[:name] = reflection.geom
         end
 
         scope = scope.send("st_#{reflection.relationship}", geom_options, reflection.scope_options)

@@ -13,8 +13,7 @@ module ActiveRecordSpatial
       inverse_of: :spatial_ref_sys
 
     def spatial_columns
-      self.geometry_columns + self.geography_columns
+      geometry_columns + geography_columns
     end
   end
 end
-

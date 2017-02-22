@@ -58,8 +58,6 @@ module ActiveRecordSpatial
       require 'activerecord-spatial/spatial_scope_constants/postgis_legacy'
     end
 
-    self.constants.each do |constant|
-      constant.freeze
-    end
+    constants.each(&:freeze)
   end
 end

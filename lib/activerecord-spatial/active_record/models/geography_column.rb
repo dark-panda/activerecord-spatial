@@ -10,8 +10,7 @@ module ActiveRecordSpatial
     end
 
     def spatial_column
-      self.f_geography_column
+      f_geography_column
     end
   end
 end
-

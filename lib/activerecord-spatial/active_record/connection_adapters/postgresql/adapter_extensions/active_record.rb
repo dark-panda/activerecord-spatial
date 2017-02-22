@@ -27,15 +27,13 @@ module ActiveRecord
   end
 end
 
-ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES.merge!(
-  geometry: {
-    name: 'geometry'
-  },
+ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES[:geometry] = {
+  name: 'geometry'
+}
 
-  geography: {
-    name: 'geography'
-  }
-)
+ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES[:geometry] = {
+  name: 'geography'
+}
 
 ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
   prepend(Module.new do

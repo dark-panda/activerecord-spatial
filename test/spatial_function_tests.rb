@@ -1,5 +1,5 @@
 
-$: << File.dirname(__FILE__)
+$LOAD_PATH << File.dirname(__FILE__)
 require 'test_helper'
 
 class SpatialFunctionTests < ActiveRecordSpatialTestCase
@@ -35,9 +35,7 @@ class SpatialFunctionTests < ActiveRecordSpatialTestCase
       Foo.spatial_function(:distance, {
         class: Blort,
         value: 'POINT(0 0)'
-      }, {
-        column: 'the_other_geom'
-      }).to_sql
+      }, column: 'the_other_geom').to_sql
     )
   end
 
@@ -47,9 +45,7 @@ class SpatialFunctionTests < ActiveRecordSpatialTestCase
       Foo.spatial_function(:distance, {
         class: 'Blort',
         value: 'POINT(0 0)'
-      }, {
-        column: 'the_other_geom'
-      }).to_sql
+      }, column: 'the_other_geom').to_sql
     )
   end
 
@@ -74,4 +70,3 @@ class SpatialFunctionTests < ActiveRecordSpatialTestCase
     )
   end
 end
-

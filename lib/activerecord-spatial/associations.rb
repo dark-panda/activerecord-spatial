@@ -14,8 +14,8 @@ module ActiveRecordSpatial::Associations
 
       options = build_options(options)
 
-      if !ActiveRecordSpatial::SpatialScopeConstants::RELATIONSHIPS.include?(options[:relationship].to_s)
-        raise ArgumentError.new(%{Invalid spatial relationship "#{options[:relationship]}", expected one of #{ActiveRecordSpatial::SpatialScopeConstants::RELATIONSHIPS.inspect}})
+      unless ActiveRecordSpatial::SpatialScopeConstants::RELATIONSHIPS.include?(options[:relationship].to_s)
+        raise ArgumentError, %{Invalid spatial relationship "#{options[:relationship]}", expected one of #{ActiveRecordSpatial::SpatialScopeConstants::RELATIONSHIPS.inspect}}
       end
 
       reflection = ActiveRecord::Associations::Builder::Spatial.build(self, name, scope, options, &extension)

@@ -19,4 +19,3 @@ module ActiveRecordSpatial
     end
   end
 end
-

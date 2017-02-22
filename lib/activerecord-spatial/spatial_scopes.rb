@@ -136,58 +136,55 @@ module ActiveRecordSpatial
     }.freeze
 
     included do
-      assert_arguments_length = proc { |args, min, max = (1.0 / 0.0)|
-        raise ArgumentError.new("wrong number of arguments (#{args.length} for #{min}-#{max})") unless
-          args.length.between?(min, max)
-      }
+      assert_arguments_length = proc do |args, min, max = (1.0 / 0.0)|
+        raise ArgumentError, "wrong number of arguments (#{args.length} for #{min}-#{max})" unless args.length.between?(min, max)
+      end
 
       SpatialScopeConstants::RELATIONSHIPS.each do |relationship|
-        src, line = <<-EOF, __LINE__ + 1
+        class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
           scope :st_#{relationship}, lambda { |geom, options = {}|
             options = {
               geom_arg: geom
             }.merge(options)
 
             unless geom.nil?
-              self.where(
+              where(
                 ActiveRecordSpatial::SpatialFunction.build!(self, '#{relationship}', options).to_sql
               )
             end
           }
-        EOF
-        self.class_eval(src, __FILE__, line)
+        RUBY
       end
 
       SpatialScopeConstants::ONE_GEOMETRY_ARGUMENT_AND_ONE_ARGUMENT_RELATIONSHIPS.each do |relationship|
-        src, line = <<-EOF, __LINE__ + 1
+        class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
           scope :st_#{relationship}, lambda { |geom, distance, options = {}|
             options = {
               geom_arg: geom,
               args: distance
             }.merge(options)
 
-            self.where(
+            where(
               ActiveRecordSpatial::SpatialFunction.build!(self, '#{relationship}', options).to_sql
             )
           }
-        EOF
-        self.class_eval(src, __FILE__, line)
+        RUBY
       end
 
-      self.class_eval do
+      class_eval do
         scope :st_geometry_type, lambda { |*args|
           assert_arguments_length[args, 1]
           options = args.extract_options!
           types = args
 
-          self.where(
+          where(
             ActiveRecordSpatial::SpatialFunction.build!(self, 'GeometryType', options).in(types).to_sql
           )
         }
       end
 
       SpatialScopeConstants::ZERO_ARGUMENT_MEASUREMENTS.each do |measurement|
-        src, line = <<-EOF, __LINE__ + 1
+        class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
           scope :order_by_st_#{measurement}, lambda { |options = {}|
             if options.is_a?(Symbol)
               options = {
@@ -198,14 +195,13 @@ module ActiveRecordSpatial
             function_call = ActiveRecordSpatial::SpatialFunction.build!(self, '#{measurement}', options).to_sql
             function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
-            self.order(function_call)
+            order(function_call)
           }
-        EOF
-        self.class_eval(src, __FILE__, line)
+        RUBY
       end
 
       SpatialScopeConstants::ONE_GEOMETRY_ARGUMENT_MEASUREMENTS.each do |measurement|
-        src, line = <<-EOF, __LINE__ + 1
+        class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
           scope :order_by_st_#{measurement}, lambda { |geom, options = {}|
             if options.is_a?(Symbol)
               options = {
@@ -220,14 +216,13 @@ module ActiveRecordSpatial
             function_call = ActiveRecordSpatial::SpatialFunction.build!(self, '#{measurement}', options).to_sql
             function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
-            self.order(function_call)
+            order(function_call)
           }
-        EOF
-        self.class_eval(src, __FILE__, line)
+        RUBY
       end
 
       SpatialScopeConstants::ONE_ARGUMENT_MEASUREMENTS.each do |measurement|
-        src, line = <<-EOF, __LINE__ + 1
+        class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
           scope :order_by_st_#{measurement}, lambda { |argument, options = {}|
             options = {
               args: argument
@@ -236,13 +231,12 @@ module ActiveRecordSpatial
             function_call = ActiveRecordSpatial::SpatialFunction.build!(self, '#{measurement}', options).to_sql
             function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
-            self.order(function_call)
+            order(function_call)
           }
-        EOF
-        self.class_eval(src, __FILE__, line)
+        RUBY
       end
 
-      self.class_eval do
+      class_eval do
         scope :order_by_st_hausdorffdistance, lambda { |*args|
           assert_arguments_length[args, 1, 3]
           options = args.extract_options!
@@ -260,7 +254,7 @@ module ActiveRecordSpatial
           ).to_sql
           function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
-          self.order(function_call)
+          order(function_call)
         }
 
         scope :order_by_st_distance_spheroid, lambda { |geom, spheroid, options = {}|
@@ -271,14 +265,16 @@ module ActiveRecordSpatial
 
           function_call = ActiveRecordSpatial::SpatialFunction.build!(
             self,
-            ActiveRecordSpatial::POSTGIS[:lib] >= '2.2' ?
-              'distancespheroid' :
-              'distance_spheroid',
+            if ActiveRecordSpatial::POSTGIS[:lib] >= '2.2'
+              'distancespheroid'
+            else
+              'distance_spheroid'
+            end,
             options
           ).to_sql
           function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
-          self.order(function_call)
+          order(function_call)
         }
 
         class << self

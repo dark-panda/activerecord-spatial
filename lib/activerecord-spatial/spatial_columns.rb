@@ -37,99 +37,97 @@ module ActiveRecordSpatial
     end
 
     module ClassMethods
-      protected
-        @geometry_columns = nil
-        @geography_columns = nil
+      @geometry_columns = nil
+      @geography_columns = nil
 
-      public
-        # Build call to ActiveRecordSpatial::SpatialFunction.build! that helps
-        # you create spatial function calls.
-        def spatial_function(*args)
-          SpatialFunction.build!(self, *args)
-        end
+      # Build call to ActiveRecordSpatial::SpatialFunction.build! that helps
+      # you create spatial function calls.
+      def spatial_function(*args)
+        SpatialFunction.build!(self, *args)
+      end
 
-        # Stubs for documentation purposes:
+      # Stubs for documentation purposes:
 
-        # Returns an Array of available geometry columns in the
-        # table. These are PostgreSQLColumns with values set for
-        # the srid and coord_dimensions properties.
-        def geometry_columns; end
+      # Returns an Array of available geometry columns in the
+      # table. These are PostgreSQLColumns with values set for
+      # the srid and coord_dimensions properties.
+      def geometry_columns; end
 
-        # Returns an Array of available geography columns in the
-        # table. These are PostgreSQLColumns with values set for
-        # the srid and coord_dimensions properties.
-        def geography_columns; end
+      # Returns an Array of available geography columns in the
+      # table. These are PostgreSQLColumns with values set for
+      # the srid and coord_dimensions properties.
+      def geography_columns; end
 
-        # Force a reload of available geometry columns.
-        def geometry_columns!; end
+      # Force a reload of available geometry columns.
+      def geometry_columns!; end
 
-        # Force a reload of available geography columns.
-        def geography_columns!; end
+      # Force a reload of available geography columns.
+      def geography_columns!; end
 
-        # Grabs a geometry column based on name.
-        def geometry_column_by_name(name); end
+      # Grabs a geometry column based on name.
+      def geometry_column_by_name(name); end
 
-        # Grabs a geography column based on name.
-        def geography_column_by_name(name); end
+      # Grabs a geography column based on name.
+      def geography_column_by_name(name); end
 
-        # Returns both the geometry and geography columns for a table.
-        def spatial_columns
-          self.geometry_columns + self.geography_columns
-        end
+      # Returns both the geometry and geography columns for a table.
+      def spatial_columns
+        geometry_columns + geography_columns
+      end
 
-        # Reloads both the geometry and geography columns for a table.
-        def spatial_columns!
-          self.geometry_columns! + self.geography_columns!
-        end
+      # Reloads both the geometry and geography columns for a table.
+      def spatial_columns!
+        geometry_columns! + geography_columns!
+      end
 
-        # Grabs a spatial column based on name.
-        def spatial_column_by_name(name)
-          self.geometry_column_by_name(name) || self.geography_column_by_name(name)
-        end
+      # Grabs a spatial column based on name.
+      def spatial_column_by_name(name)
+        geometry_column_by_name(name) || geography_column_by_name(name)
+      end
 
-        %w{ geometry geography }.each do |m|
-          src, line = <<-EOF, __LINE__ + 1
-            undef :#{m}_columns
-            def #{m}_columns
-              if !defined?(@#{m}_columns) || @#{m}_columns.nil?
-                @#{m}_columns = ActiveRecordSpatial::#{m.capitalize}Column.where(
-                  f_table_name: self.table_name
-                ).to_a
-                @#{m}_columns.freeze
-              end
-              @#{m}_columns
+      %w{ geometry geography }.each do |m|
+        class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
+          undef :#{m}_columns
+          def #{m}_columns
+            if !defined?(@#{m}_columns) || @#{m}_columns.nil?
+              @#{m}_columns = ActiveRecordSpatial::#{m.capitalize}Column.where(
+                f_table_name: table_name
+              ).to_a
+              @#{m}_columns.freeze
             end
+            @#{m}_columns
+          end
 
-            undef :#{m}_columns!
-            def #{m}_columns!
-              @#{m}_columns = nil
-              #{m}_columns
+          undef :#{m}_columns!
+          def #{m}_columns!
+            @#{m}_columns = nil
+            #{m}_columns
+          end
+
+          undef :#{m}_column_by_name
+          def #{m}_column_by_name(name)
+            @#{m}_column_by_name ||= #{m}_columns.inject(HashWithIndifferentAccess.new) do |memo, obj|
+              memo[obj.spatial_column] = obj
+              memo
             end
+            @#{m}_column_by_name[name]
+          end
+        RUBY
+      end
 
-            undef :#{m}_column_by_name
-            def #{m}_column_by_name(name)
-              @#{m}_column_by_name ||= self.#{m}_columns.inject(HashWithIndifferentAccess.new) do |memo, obj|
-                memo[obj.spatial_column] = obj
-                memo
-              end
-              @#{m}_column_by_name[name]
-            end
-          EOF
-          self.class_eval(src, __FILE__, line)
-        end
+      # Quickly grab the SRID for a geometry column.
+      def srid_for(column_name)
+        column = spatial_column_by_name(column_name)
+        column.try(:srid) || ActiveRecordSpatial::UNKNOWN_SRID
+      end
 
-        # Quickly grab the SRID for a geometry column.
-        def srid_for(column_name)
-          column = self.spatial_column_by_name(column_name)
-          column.try(:srid) || ActiveRecordSpatial::UNKNOWN_SRID
-        end
+      # Quickly grab the number of dimensions for a geometry column.
+      def coord_dimension_for(column_name)
+        spatial_column_by_name(column_name).coord_dimension
+      end
 
-        # Quickly grab the number of dimensions for a geometry column.
-        def coord_dimension_for(column_name)
-          self.spatial_column_by_name(column_name).coord_dimension
-        end
+      private
 
-      protected
         # Sets up nifty setters and getters for spatial columns.
         # The methods created look like this:
         #
@@ -152,19 +150,14 @@ module ActiveRecordSpatial
           create_these = []
 
           if options.nil?
-            create_these.concat(self.spatial_columns)
+            create_these.concat(spatial_columns)
           else
-            if options[:geometry_columns]
-              create_these.concat(self.geometry_columns)
-            end
+            create_these.concat(geometry_columns) if options[:geometry_columns]
+            create_these.concat(geography_columns) if options[:geography_columns]
 
-            if options[:geography_columns]
-              create_these.concat(self.geography_columns)
-            end
+            raise ArgumentError, "You can only specify either :except or :only (#{options.keys.inspect})" if options[:except] && options[:only]
 
-            if options[:except] && options[:only]
-              raise ArgumentError, "You can only specify either :except or :only (#{options.keys.inspect})"
-            elsif options[:except]
+            if options[:except]
               except = Array.wrap(options[:except]).collect(&:to_s)
               create_these.reject! { |c| except.include?(c) }
             elsif options[:only]
@@ -174,7 +167,7 @@ module ActiveRecordSpatial
           end
 
           create_these.each do |k|
-            src, line = <<-EOF, __LINE__ + 1
+            class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
               def #{k.spatial_column}=(geom)
                 if !geom
                   self['#{k.spatial_column}'] = nil
@@ -236,16 +229,14 @@ module ActiveRecordSpatial
 
                 self['#{k.spatial_column}']
               end
-            EOF
-            self.class_eval(src, __FILE__, line)
+            RUBY
 
             SPATIAL_COLUMN_OUTPUT_FORMATS.reject { |f| f == 'geos' }.each do |f|
-              src, line = <<-EOF, __LINE__ + 1
+              class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
                 def #{k.spatial_column}_#{f}(*args)
                   @#{k.spatial_column}_#{f} ||= self.#{k.spatial_column}_geos.to_#{f}(*args) rescue nil
                 end
-              EOF
-              self.class_eval(src, __FILE__, line)
+              RUBY
             end
           end
         end
