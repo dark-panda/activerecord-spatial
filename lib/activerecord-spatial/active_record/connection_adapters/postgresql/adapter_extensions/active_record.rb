@@ -38,11 +38,11 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES.merge
 )
 
 ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
-  define_method :initialize_type_map_with_spatial do |type_map|
-    initialize_type_map_without_spatial(type_map)
-    type_map.register_type 'geometry', ::ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Geometry.new
-    type_map.register_type 'geography', ::ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Geography.new
-  end
-  alias_method_chain :initialize_type_map, :spatial
+  prepend(Module.new do
+    def initialize_type_map(type_map)
+      super
+      type_map.register_type 'geometry', ::ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Geometry.new
+      type_map.register_type 'geography', ::ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Geography.new
+    end
+  end)
 end
-

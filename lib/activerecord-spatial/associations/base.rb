@@ -29,14 +29,15 @@ module ActiveRecord
         SPATIAL_JOIN_QUOTED_NAME = %{"#{SPATIAL_JOIN_NAME}"}
       end
 
-      def preloader_for_with_spatial(reflection, *args)
-        if reflection.is_a?(ActiveRecord::Reflection::SpatialReflection)
-          SpatialAssociation
-        else
-          preloader_for_without_spatial(reflection, *args)
+      prepend(Module.new do
+        def preloader_for(reflection, *args)
+          if reflection.is_a?(ActiveRecord::Reflection::SpatialReflection)
+            SpatialAssociation
+          else
+            super
+          end
         end
-      end
-      alias_method_chain :preloader_for, :spatial
+      end)
     end
   end
 end
