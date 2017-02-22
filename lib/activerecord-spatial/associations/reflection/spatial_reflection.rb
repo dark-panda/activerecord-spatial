@@ -26,30 +26,16 @@ module ActiveRecord
       end
     end
 
-    if ActiveRecord::Reflection.respond_to?(:create)
-      class << self
-        def create_with_spatial(macro, name, scope, options, ar)
+    class << self
+      prepend(Module.new do
+        def create(macro, name, scope, options, ar)
           if options[:relationship] && options[:geom] && options[:foreign_geom]
             SpatialReflection.new(macro, name, scope, options, ar)
           else
-            create_without_spatial(macro, name, scope, options, ar)
+            super
           end
         end
-        alias_method_chain :create, :spatial
-      end
-    else
-      module ClassMethods
-        def create_reflection_with_spatial(macro, name, scope, options, ar)
-          if options[:relationship] && options[:geom] && options[:foreign_geom]
-            reflection = SpatialReflection.new(macro, name, scope, options, ar)
-            self.reflections = self.reflections.merge(name => reflection)
-            reflection
-          else
-            create_reflection_without_spatial(macro, name, scope, options, ar)
-          end
-        end
-        alias_method_chain :create_reflection, :spatial
-      end
+      end)
     end
   end
 end
