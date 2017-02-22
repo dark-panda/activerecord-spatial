@@ -1,5 +1,5 @@
 
-$: << File.dirname(__FILE__)
+$LOAD_PATH << File.dirname(__FILE__)
 require 'test_helper'
 
 class SpatialScopesTests < ActiveRecordSpatialTestCase
@@ -13,78 +13,76 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   end
 
   def test_contains
-    ids_tester(:st_contains, 'POINT(3 3)', [ 3 ])
+    ids_tester(:st_contains, 'POINT(3 3)', [3])
   end
 
   def test_containsproperly
-    ids_tester(:st_containsproperly, 'LINESTRING(-4 -4, 4 4)', [ 3 ])
+    ids_tester(:st_containsproperly, 'LINESTRING(-4 -4, 4 4)', [3])
   end
 
   def test_covers
-    ids_tester(:st_covers, 'LINESTRING(-4 -4, 4 4)', [ 3 ])
+    ids_tester(:st_covers, 'LINESTRING(-4 -4, 4 4)', [3])
   end
 
   def test_coveredby
-    ids_tester(:st_coveredby, 'POLYGON((-6 -6, -6 6, 6 6, 6 -6, -6 -6))', [ 1, 3 ])
+    ids_tester(:st_coveredby, 'POLYGON((-6 -6, -6 6, 6 6, 6 -6, -6 -6))', [1, 3])
   end
 
   def test_crosses
-    ids_tester(:st_crosses, 'LINESTRING(-6 -6, 4 4)', [ 3 ])
+    ids_tester(:st_crosses, 'LINESTRING(-6 -6, 4 4)', [3])
   end
 
   def test_disjoint
-    ids_tester(:st_disjoint, 'POINT(100 100)', [ 1, 2, 3 ])
+    ids_tester(:st_disjoint, 'POINT(100 100)', [1, 2, 3])
   end
 
   def test_equal
-    ids_tester(:st_equals, 'POLYGON((-5 -5, -5 5, 5 5, 5 -5, -5 -5))', [ 3 ])
+    ids_tester(:st_equals, 'POLYGON((-5 -5, -5 5, 5 5, 5 -5, -5 -5))', [3])
   end
 
   def test_intersects
-    ids_tester(:st_intersects, 'LINESTRING(-5 -5, 10 10)', [ 1, 2, 3 ])
+    ids_tester(:st_intersects, 'LINESTRING(-5 -5, 10 10)', [1, 2, 3])
   end
 
   def test_orderingequals
-    ids_tester(:st_orderingequals, 'POLYGON((-5 -5, -5 5, 5 5, 5 -5, -5 -5))', [ 3 ])
+    ids_tester(:st_orderingequals, 'POLYGON((-5 -5, -5 5, 5 5, 5 -5, -5 -5))', [3])
   end
 
   def test_overlaps
-    ids_tester(:st_overlaps, 'POLYGON((-6 -6, -5 0, 0 0, 0 -5, -6 -6))', [ 3 ])
+    ids_tester(:st_overlaps, 'POLYGON((-6 -6, -5 0, 0 0, 0 -5, -6 -6))', [3])
   end
 
   def test_touches
-    ids_tester(:st_touches, 'POLYGON((-5 -5, -5 -10, -10 -10, -10 -5, -5 -5))', [ 3 ])
+    ids_tester(:st_touches, 'POLYGON((-5 -5, -5 -10, -10 -10, -10 -5, -5 -5))', [3])
   end
 
   def test_within
-    ids_tester(:st_within, 'POLYGON((-5 -5, 5 10, 20 20, 10 5, -5 -5))', [ 1, 2 ])
+    ids_tester(:st_within, 'POLYGON((-5 -5, 5 10, 20 20, 10 5, -5 -5))', [1, 2])
   end
 
   def test_dwithin
-    ids_tester(:st_dwithin, [ 'POINT(5 5)', 10 ], [ 1, 2, 3 ])
+    ids_tester(:st_dwithin, ['POINT(5 5)', 10], [1, 2, 3])
   end
 
   def test_dfullywithin
-    ids_tester(:st_dfullywithin, [ 'POINT(5 5)', 10 ], [ 1, 2 ])
+    ids_tester(:st_dfullywithin, ['POINT(5 5)', 10], [1, 2])
   end
 
   def test_geometry_type
-    ids_tester(:st_geometry_type, 'ST_Point', [ 1, 2 ])
-    ids_tester(:st_geometry_type, [ 'ST_Point', 'ST_Polygon' ], [ 1, 2, 3 ])
-    ids_tester(:st_geometry_type, [ 'ST_MultiLineString' ], [])
+    ids_tester(:st_geometry_type, 'ST_Point', [1, 2])
+    ids_tester(:st_geometry_type, %w{ ST_Point ST_Polygon }, [1, 2, 3])
+    ids_tester(:st_geometry_type, ['ST_MultiLineString'], [])
   end
 
   def test_allow_null
-    begin
-      foo = Foo.create(name: 'four')
-      ids_tester(:st_contains, [ 'POINT(3 3)', { allow_null: true } ], [ 3, foo.id ])
-    ensure
-      Foo.find_by_name('four').destroy
-    end
+    foo = Foo.create(name: 'four')
+    ids_tester(:st_contains, ['POINT(3 3)', { allow_null: true }], [3, foo.id])
+  ensure
+    Foo.find_by_name('four').destroy
   end
 
   def test_nil_relationship
-    assert_equal([ 1, 2, 3 ], Foo.st_within(nil).to_a.collect(&:id).sort)
+    assert_equal([1, 2, 3], Foo.st_within(nil).to_a.collect(&:id).sort)
   end
 
   def test_with_column
@@ -334,13 +332,13 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
   def test_3ddwithin
     skip('ST_3ddwithin is unavailable') unless Foo3d.respond_to?(:st_3ddwithin)
 
-    ids_tester(:st_3ddwithin, [ 'LINESTRING(-5 -5 -5, 10 10 10)', 10 ], [ 1, 2, 3 ], Foo3d)
+    ids_tester(:st_3ddwithin, ['LINESTRING(-5 -5 -5, 10 10 10)', 10], [1, 2, 3], Foo3d)
   end
 
   def test_3ddfullywithin
     skip('ST_3ddfullywithin is unavilable') unless Foo3d.respond_to?(:st_3ddfullywithin)
 
-    ids_tester(:st_3ddfullywithin, [ 'LINESTRING(-10 -10 -10, 10 10 10)', 100 ], [ 1, 2, 3 ], Foo3d)
+    ids_tester(:st_3ddfullywithin, ['LINESTRING(-10 -10 -10, 10 10 10)', 100], [1, 2, 3], Foo3d)
   end
 
   def test_order_by_with_column_wrapper
@@ -453,4 +451,3 @@ class SpatialScopesTests < ActiveRecordSpatialTestCase
     assert_equal([1, 2], values)
   end
 end
-

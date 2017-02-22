@@ -1,5 +1,5 @@
 
-$: << File.dirname(__FILE__)
+$LOAD_PATH << File.dirname(__FILE__)
 require 'test_helper'
 
 class DefaultIntersectsRelationshipTest < ActiveRecordSpatialTestCase
@@ -23,7 +23,7 @@ class DefaultIntersectsRelationshipTest < ActiveRecordSpatialTestCase
       values = Foo.first.bars.collect(&:id).sort
     end
 
-    assert_equal([ 3 ], values)
+    assert_equal([3], values)
   end
 end
 
@@ -36,16 +36,16 @@ class RelationshipsTest < ActiveRecordSpatialTestCase
     contains: [],
     containsproperly: [],
     covers: [],
-    coveredby: [ 3 ],
+    coveredby: [3],
     crosses: [],
-    disjoint: [ 1, 2 ],
+    disjoint: [1, 2],
     equals: [],
-    intersects: [ 3 ],
+    intersects: [3],
     orderingequals: [],
     overlaps: [],
     touches: [],
-    within: [ 3 ],
-    :'3dintersects' => [ 3 ]
+    within: [3],
+    :'3dintersects' => [3]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
       skip("ST_#{relationship} is unavailable") unless Foo.respond_to?("st_#{relationship}")
@@ -69,19 +69,19 @@ class RelationshipsWithSelfTest < ActiveRecordSpatialTestCase
   end
 
   {
-    contains: [ 1 ],
-    containsproperly: [ 1 ],
-    covers: [ 1 ],
-    coveredby: [ 1, 3 ],
+    contains: [1],
+    containsproperly: [1],
+    covers: [1],
+    coveredby: [1, 3],
     crosses: [],
-    disjoint: [ 2 ],
-    equals: [ 1 ],
-    intersects: [ 1, 3 ],
-    orderingequals: [ 1 ],
+    disjoint: [2],
+    equals: [1],
+    intersects: [1, 3],
+    orderingequals: [1],
     overlaps: [],
     touches: [],
-    within: [ 1, 3 ],
-    :'3dintersects' => [ 1, 3 ]
+    within: [1, 3],
+    :'3dintersects' => [1, 3]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
       skip("ST_#{relationship} is unavailable") unless Foo.respond_to?("st_#{relationship}")
@@ -108,16 +108,16 @@ class RelationshipsWithForeignGeomTest < ActiveRecordSpatialTestCase
     contains: [],
     containsproperly: [],
     covers: [],
-    coveredby: [ 3 ],
+    coveredby: [3],
     crosses: [],
-    disjoint: [ 1, 2 ],
+    disjoint: [1, 2],
     equals: [],
-    intersects: [ 3 ],
+    intersects: [3],
     orderingequals: [],
     overlaps: [],
     touches: [],
-    within: [ 3 ],
-    :'3dintersects' => [ 3 ]
+    within: [3],
+    :'3dintersects' => [3]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
       skip("ST_#{relationship} is unavailable") unless Foo.respond_to?("st_#{relationship}")
@@ -148,16 +148,16 @@ class RelationshipsWithGeomTest < ActiveRecordSpatialTestCase
     contains: [],
     containsproperly: [],
     covers: [],
-    coveredby: [ 3 ],
+    coveredby: [3],
     crosses: [],
-    disjoint: [ 1, 2 ],
+    disjoint: [1, 2],
     equals: [],
-    intersects: [ 3 ],
+    intersects: [3],
     orderingequals: [],
     overlaps: [],
-    touches: [ 3 ],
+    touches: [3],
     within: [],
-    :'3dintersects' => [ 3 ]
+    :'3dintersects' => [3]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
       skip("ST_#{relationship} is unavailable") unless Foo.respond_to?("st_#{relationship}")
@@ -200,7 +200,7 @@ class WithCounterSqlTest < ActiveRecordSpatialTestCase
       Foo.class_eval do
         has_many_spatially :bars,
           class_name: 'Bar',
-          counter_sql: "SELECT COUNT(*) bars.* FROM bars"
+          counter_sql: 'SELECT COUNT(*) bars.* FROM bars'
       end
     end
   end
@@ -241,7 +241,7 @@ class PreloadTest < ActiveRecordSpatialTestCase
       end
     end
 
-    assert_equal([ 1, 1, 2 ], values)
+    assert_equal([1, 1, 2], values)
   end
 
   def test_with_eager_loading
@@ -254,7 +254,7 @@ class PreloadTest < ActiveRecordSpatialTestCase
       end
     end
 
-    assert_equal([ 1, 1, 2 ], values)
+    assert_equal([1, 1, 2], values)
   end
 end
 
@@ -279,7 +279,7 @@ class PreloadWithOtherGeomTest < ActiveRecordSpatialTestCase
       end
     end
 
-    assert_equal([ 1, 0, 2 ], values)
+    assert_equal([1, 0, 2], values)
   end
 
   def test_with_eager_loading
@@ -292,7 +292,7 @@ class PreloadWithOtherGeomTest < ActiveRecordSpatialTestCase
       end
     end
 
-    assert_equal([ 1, 0, 2 ], values)
+    assert_equal([1, 0, 2], values)
   end
 end
 
@@ -320,7 +320,7 @@ class PolymorphicAssociationsTest < ActiveRecordSpatialTestCase
       end
     end
 
-    assert_equal([ 1, 7 ], values)
+    assert_equal([1, 7], values)
   end
 
   def test_without_eager_loading_and_geom
@@ -331,7 +331,7 @@ class PolymorphicAssociationsTest < ActiveRecordSpatialTestCase
       end
     end
 
-    assert_equal([ 6 ], values)
+    assert_equal([6], values)
   end
 
   def test_with_eager_loading
@@ -345,7 +345,7 @@ class PolymorphicAssociationsTest < ActiveRecordSpatialTestCase
       end
     end
 
-    assert_equal([ 1, 7 ], values)
+    assert_equal([1, 7], values)
   end
 
   def test_with_eager_loading_and_geom
@@ -359,7 +359,7 @@ class PolymorphicAssociationsTest < ActiveRecordSpatialTestCase
       end
     end
 
-    assert_equal([ 6 ], values)
+    assert_equal([6], values)
   end
 end
 
@@ -369,19 +369,19 @@ class PolymorphicAssociationsWithRelationshipsTest < ActiveRecordSpatialTestCase
   end
 
   {
-    contains: [ 1 ],
-    containsproperly: [ 1 ],
-    covers: [ 1 ],
-    coveredby: [ 1, 7 ],
+    contains: [1],
+    containsproperly: [1],
+    covers: [1],
+    coveredby: [1, 7],
     crosses: [],
-    disjoint: [ 2, 3 ],
-    equals: [ 1 ],
-    intersects: [ 1, 7 ],
-    orderingequals: [ 1 ],
+    disjoint: [2, 3],
+    equals: [1],
+    intersects: [1, 7],
+    orderingequals: [1],
     overlaps: [],
     touches: [],
-    within: [ 1, 7 ],
-    :'3dintersects' => [ 1, 7 ]
+    within: [1, 7],
+    :'3dintersects' => [1, 7]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
       skip("ST_#{relationship} is unavailable") unless Foo.respond_to?("st_#{relationship}")
@@ -411,8 +411,8 @@ class ClassNameOptionTest < ActiveRecordSpatialTestCase
   end
 
   def test_class_name
-    assert_equal([ 3 ], Foo.first.blops.collect(&:id))
-    assert_equal([ 3 ], Foo.includes(:blops).first.blops.collect(&:id))
+    assert_equal([3], Foo.first.blops.collect(&:id))
+    assert_equal([3], Foo.includes(:blops).first.blops.collect(&:id))
   end
 end
 
@@ -472,7 +472,7 @@ class GeomWrapperTest < ActiveRecordSpatialTestCase
       values = Foo.first.bars.collect(&:id).sort
     end
 
-    assert_equal([ 3 ], values)
+    assert_equal([3], values)
   end
 
   def test_with_eager_loading
@@ -482,7 +482,7 @@ class GeomWrapperTest < ActiveRecordSpatialTestCase
       values = Foo.includes(:bars).first.bars.collect(&:id).sort
     end
 
-    assert_equal([ 3 ], values)
+    assert_equal([3], values)
   end
 end
 
@@ -506,7 +506,7 @@ class ForeignGeomWrapperTest < ActiveRecordSpatialTestCase
       values = Foo.first.bars.collect(&:id).sort
     end
 
-    assert_equal([ 3 ], values)
+    assert_equal([3], values)
   end
 
   def test_with_eager_loading
@@ -516,7 +516,7 @@ class ForeignGeomWrapperTest < ActiveRecordSpatialTestCase
       values = Foo.includes(:bars).first.bars.collect(&:id).sort
     end
 
-    assert_equal([ 3 ], values)
+    assert_equal([3], values)
   end
 end
 
@@ -543,7 +543,7 @@ class BothGeomWrapperTest < ActiveRecordSpatialTestCase
       values = Foo.first.bars.collect(&:id).sort
     end
 
-    assert_equal([ 3 ], values)
+    assert_equal([3], values)
   end
 
   def test_with_eager_loading
@@ -553,7 +553,7 @@ class BothGeomWrapperTest < ActiveRecordSpatialTestCase
       values = Foo.includes(:bars).first.bars.collect(&:id).sort
     end
 
-    assert_equal([ 3 ], values)
+    assert_equal([3], values)
   end
 end
 
@@ -581,7 +581,7 @@ class BothGeomWrapperWithMixedSRIDsTest < ActiveRecordSpatialTestCase
       values = Foo.first.bars.collect(&:id).sort
     end
 
-    assert_equal([ 3 ], values)
+    assert_equal([3], values)
   end
 
   def test_with_eager_loading
@@ -591,7 +591,7 @@ class BothGeomWrapperWithMixedSRIDsTest < ActiveRecordSpatialTestCase
       values = Foo.includes(:bars).first.bars.collect(&:id).sort
     end
 
-    assert_equal([ 3 ], values)
+    assert_equal([3], values)
   end
 end
 
@@ -621,7 +621,7 @@ class BothGeomWrapperAndOptionsWithMixedSRIDsTest < ActiveRecordSpatialTestCase
       values = Foo.first.bars.collect(&:id).sort
     end
 
-    assert_equal([ 1, 2, 3 ], values)
+    assert_equal([1, 2, 3], values)
   end
 
   def test_with_eager_loading
@@ -631,7 +631,7 @@ class BothGeomWrapperAndOptionsWithMixedSRIDsTest < ActiveRecordSpatialTestCase
       values = Foo.includes(:bars).first.bars.collect(&:id).sort
     end
 
-    assert_equal([ 1, 2, 3 ], values)
+    assert_equal([1, 2, 3], values)
   end
 
   class ScopeArgumentTest < ActiveRecordSpatialTestCase
@@ -642,7 +642,7 @@ class BothGeomWrapperAndOptionsWithMixedSRIDsTest < ActiveRecordSpatialTestCase
     def test_foo
       Foo.class_eval do
         has_many_spatially :bars, proc {
-          self.order(:id)
+          order(:id)
         }
       end
 

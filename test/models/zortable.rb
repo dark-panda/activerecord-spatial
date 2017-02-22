@@ -1,5 +1,5 @@
 
-if !ActiveRecordSpatialTestCase.table_exists?('zortables')
+unless ActiveRecordSpatialTestCase.table_exists?('zortables')
   ActiveRecord::Migration.create_table(:zortables) do |t|
     t.text :name
     t.text :zortable_type
@@ -12,6 +12,5 @@ class Zortable < ActiveRecord::Base
   include ActiveRecordSpatial::SpatialColumns
   include ActiveRecordSpatial::SpatialScopes
 
-  self.create_spatial_column_accessors!
+  create_spatial_column_accessors!
 end
-

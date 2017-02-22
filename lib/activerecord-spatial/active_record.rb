@@ -11,4 +11,3 @@ module ActiveRecordSpatial
 end
 
 require 'activerecord-spatial/associations'
-

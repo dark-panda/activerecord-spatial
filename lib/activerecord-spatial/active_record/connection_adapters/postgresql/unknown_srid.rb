@@ -18,4 +18,3 @@ module ActiveRecordSpatial
     ActiveRecordSpatial::UNKNOWN_SRIDS[:geometry]
   end
 end
-

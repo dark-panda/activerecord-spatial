@@ -1,5 +1,5 @@
 
-$: << File.dirname(__FILE__)
+$LOAD_PATH << File.dirname(__FILE__)
 require 'test_helper'
 
 class AdapterTests < ActiveRecordSpatialTestCase
@@ -41,4 +41,3 @@ if ActiveRecordSpatial.geography_columns?
     end
   end
 end
-

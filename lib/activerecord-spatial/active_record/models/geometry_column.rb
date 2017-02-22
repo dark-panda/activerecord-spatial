@@ -10,8 +10,7 @@ module ActiveRecordSpatial
     end
 
     def spatial_column
-      self.f_geometry_column
+      f_geometry_column
     end
   end
 end
-

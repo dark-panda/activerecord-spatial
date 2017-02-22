@@ -24,9 +24,9 @@ module ActiveRecord
 
     class Preloader #:nodoc:
       class SpatialAssociation < HasMany #:nodoc:
-        SPATIAL_FIELD_ALIAS = '__spatial_ids__'
-        SPATIAL_JOIN_NAME = '__spatial_ids_join__'
-        SPATIAL_JOIN_QUOTED_NAME = %{"#{SPATIAL_JOIN_NAME}"}
+        SPATIAL_FIELD_ALIAS = '__spatial_ids__'.freeze
+        SPATIAL_JOIN_NAME = '__spatial_ids_join__'.freeze
+        SPATIAL_JOIN_QUOTED_NAME = %{"#{SPATIAL_JOIN_NAME}"}.freeze
       end
 
       prepend(Module.new do

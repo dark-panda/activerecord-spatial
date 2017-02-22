@@ -14,6 +14,7 @@ module ActiveRecord
         end
 
         private
+
           def association_key_name
             SPATIAL_FIELD_ALIAS
           end
@@ -32,7 +33,8 @@ module ActiveRecord
               geom[:column] = reflection.options[:geom]
             end
 
-            where_function = klass.send("st_#{reflection.options[:relationship]}",
+            where_function = klass.send(
+              "st_#{reflection.options[:relationship]}",
               geom,
               (reflection.options[:scope_options] || {}).merge(
                 column: reflection.options[:foreign_geom]
@@ -44,7 +46,7 @@ module ActiveRecord
               joins(
                 "INNER JOIN #{join_name} AS #{SPATIAL_JOIN_QUOTED_NAME} ON (" <<
                   where_function.where_clause.send(:predicates).join(' AND ') <<
-                ")"
+                  ')'
               ).
               where(model.arel_table.alias(SPATIAL_JOIN_NAME)[model.primary_key].in(ids)).
               group(table[klass.primary_key])
@@ -53,4 +55,3 @@ module ActiveRecord
     end
   end
 end
-

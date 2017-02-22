@@ -27,13 +27,13 @@ module ActiveRecordSpatial
         @klass.arel_table[column_name],
         options[:column]
       )
-      geom_args = [ first_geom_arg ]
+      geom_args = [first_geom_arg]
 
       if geom.present?
         column_type = @klass.spatial_column_by_name(column_name).spatial_type
         column_srid = @klass.srid_for(column_name)
 
-        unless geom.is_a?(Hash)
+        if !geom.is_a?(Hash)
           geom_arg = read_geos(geom, column_srid)
           geom_srid = read_geom_srid(geom_arg, column_type)
           geom_args << set_srid_or_transform(column_srid, geom_srid, geom_arg, column_type)
@@ -43,7 +43,7 @@ module ActiveRecordSpatial
           elsif geom[:class_name]
             geom[:class_name].classify.constantize
           else
-            raise ArgumentError.new("Need either a :class or :class_name option to determine the class.")
+            raise ArgumentError, 'Need either a :class or :class_name option to determine the class.'
           end
 
           if geom[:value]
@@ -59,23 +59,37 @@ module ActiveRecordSpatial
         end
       end
 
-      if options[:invert] && geom_args.length > 1
-        geom_args.reverse!
-      end
+      geom_args.reverse! if options[:invert] && geom_args.length > 1
 
       ret = Arel::Nodes::NamedFunction.new(
         function_name(function, options[:use_index]),
         geom_args + args
       )
 
-      if options[:allow_null]
-        ret = ret.or(first_geom_arg.eq(nil))
-      end
+      ret = ret.or(first_geom_arg.eq(nil)) if options[:allow_null]
 
       ret
     end
 
+    class << self
+      def additional_ordering(*args)
+        options = args.extract_options!
+
+        desc = if args.first == :desc
+          true
+        else
+          options[:desc]
+        end
+
+        ''.tap do |ret|
+          ret << ' DESC' if desc
+          ret << " NULLS #{options[:nulls].to_s.upcase}" if options[:nulls]
+        end
+      end
+    end
+
     private
+
       def set_srid_or_transform(column_srid, geom_srid, geom, type)
         geom_param = case geom
           when Geos::Geometry
@@ -91,20 +105,20 @@ module ActiveRecordSpatial
 
             Arel.sql("#{table_name}.#{@klass.connection.quote_table_name(column_name(geom[:column]))}")
           else
-            raise ArgumentError.new("Expected either a Geos::Geometry or a Hash.")
+            raise ArgumentError, 'Expected either a Geos::Geometry or a Hash.'
         end
 
-        sql = if column_srid != geom_srid
+        if column_srid != geom_srid
           if column_srid == ActiveRecordSpatial::UNKNOWN_SRIDS[type] || geom_srid == ActiveRecordSpatial::UNKNOWN_SRIDS[type]
             Arel::Nodes::NamedFunction.new(
               function_name('SetSRID'),
-              [ geom_param, column_srid ]
+              [geom_param, column_srid]
             )
 
           else
             Arel::Nodes::NamedFunction.new(
               function_name('Transform'),
-              [ geom_param, column_srid ]
+              [geom_param, column_srid]
             )
           end
         else
@@ -120,7 +134,7 @@ module ActiveRecordSpatial
       end
 
       def read_geom_srid(geos, column_type = :geometry)
-        if geos.srid == 0 || geos.srid == -1
+        if geos.srid.zero? || geos.srid == -1
           ActiveRecordSpatial::UNKNOWN_SRIDS[column_type]
         else
           geos.srid
@@ -130,16 +144,16 @@ module ActiveRecordSpatial
       def default_options(*args)
         options = args.extract_options!
 
-        if args.length > 0
+        if args.length.positive?
           desc = if args.first == :desc
             true
           else
             options[:desc]
           end
 
-          DEFAULT_OPTIONS.merge({
+          DEFAULT_OPTIONS.merge(
             desc: desc
-          }).merge(options || {})
+          ).merge(options || {})
         else
           DEFAULT_OPTIONS.merge(options || {})
         end
@@ -158,20 +172,22 @@ module ActiveRecordSpatial
           column_name_or_options[:name]
         else
           column_name_or_options
-        end || ActiveRecordSpatial.default_column_name
+        end
+
+        column_name || ActiveRecordSpatial.default_column_name
       end
 
       def wrap_column_or_geometry(column_name_or_geometry, options = nil)
         if options.is_a?(Hash) && options[:wrapper]
           wrapper, args = if options[:wrapper].is_a?(Hash)
-            [ options[:wrapper].keys.first, Array.wrap(options[:wrapper].values.first) ]
+            [options[:wrapper].keys.first, Array.wrap(options[:wrapper].values.first)]
           else
-            [ options[:wrapper], [] ]
+            [options[:wrapper], []]
           end
 
           Arel::Nodes::NamedFunction.new(
             function_name(wrapper),
-            [ column_name_or_geometry, *args.collect { |arg| arel_quoted_value(arg) } ]
+            [column_name_or_geometry, *args.collect { |arg| arel_quoted_value(arg) }]
           )
         else
           column_name_or_geometry
@@ -193,27 +209,5 @@ module ActiveRecordSpatial
           value
         end
       end
-
-    class << self
-      def additional_ordering(*args)
-        options = args.extract_options!
-
-        desc = if args.first == :desc
-          true
-        else
-          options[:desc]
-        end
-
-        ''.tap do |ret|
-            if desc
-              ret << ' DESC'
-            end
-
-            if options[:nulls]
-              ret << " NULLS #{options[:nulls].to_s.upcase}"
-            end
-        end
-      end
-    end
   end
 end

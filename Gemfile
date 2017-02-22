@@ -17,6 +17,4 @@ gem 'rake'
 gem 'rdoc'
 gem 'simplecov'
 
-if File.exists?('Gemfile.local')
-  instance_eval File.read('Gemfile.local')
-end
+instance_eval File.read('Gemfile.local') if File.exist?('Gemfile.local')

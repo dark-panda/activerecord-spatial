@@ -1,5 +1,5 @@
 
-if !ActiveRecordSpatialTestCase.table_exists?('foo3ds')
+unless ActiveRecordSpatialTestCase.table_exists?('foo3ds')
   ActiveRecord::Migration.create_table(:foo3ds) do |t|
     t.text :name
   end
@@ -12,6 +12,5 @@ class Foo3d < ActiveRecord::Base
   include ActiveRecordSpatial::SpatialColumns
   include ActiveRecordSpatial::SpatialScopes
 
-  self.create_spatial_column_accessors!
+  create_spatial_column_accessors!
 end
-

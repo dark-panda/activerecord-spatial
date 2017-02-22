@@ -1,5 +1,5 @@
 
-$: << File.dirname(__FILE__)
+$LOAD_PATH << File.dirname(__FILE__)
 require 'test_helper'
 
 class GeographyColumnTests < ActiveRecordSpatialTestCase
@@ -37,4 +37,3 @@ class GeographyColumnTests < ActiveRecordSpatialTestCase
     assert_equal(4326, FooGeography.geography_column_by_name(:the_other_geom).spatial_ref_sys.srid)
   end
 end
-

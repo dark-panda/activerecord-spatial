@@ -1,7 +1,7 @@
 
 module ActiveRecordSpatial
   POSTGIS = begin
-    if (version_string = ::ActiveRecord::Base.connection.select_rows("SELECT postgis_full_version()").flatten.first).present?
+    if (version_string = ::ActiveRecord::Base.connection.select_rows('SELECT postgis_full_version()').flatten.first).present?
       hash = {
         use_stats: version_string =~ /USE_STATS/
       }
@@ -21,4 +21,3 @@ module ActiveRecordSpatial
     end
   end
 end
-

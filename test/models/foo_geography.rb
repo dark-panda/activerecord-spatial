@@ -1,5 +1,5 @@
 
-if !ActiveRecordSpatialTestCase.table_exists?('foo_geographies')
+unless ActiveRecordSpatialTestCase.table_exists?('foo_geographies')
   ActiveRecord::Migration.create_table(:foo_geographies) do |t|
     t.text :name
     t.column :the_geom, :geography
@@ -11,6 +11,5 @@ class FooGeography < ActiveRecord::Base
   include ActiveRecordSpatial::SpatialColumns
   include ActiveRecordSpatial::SpatialScopes
 
-  self.create_spatial_column_accessors!
+  create_spatial_column_accessors!
 end
-

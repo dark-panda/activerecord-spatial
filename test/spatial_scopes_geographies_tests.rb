@@ -1,5 +1,5 @@
 
-$: << File.dirname(__FILE__)
+$LOAD_PATH << File.dirname(__FILE__)
 require 'test_helper'
 
 class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
@@ -13,32 +13,30 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
   end
 
   def test_covers
-    ids_tester(:st_covers, 'POINT(0 0)', [ 3 ], conditions: {
-      id: [ 3 ]
+    ids_tester(:st_covers, 'POINT(0 0)', [3], conditions: {
+      id: [3]
     })
   end
 
   def test_coveredby
-    ids_tester(:st_coveredby, 'POLYGON((-6 -6, -6 6, 6 6, 6 -6, -6 -6))', [ 1 ], conditions: {
-      id: [ 1, 2 ]
+    ids_tester(:st_coveredby, 'POLYGON((-6 -6, -6 6, 6 6, 6 -6, -6 -6))', [1], conditions: {
+      id: [1, 2]
     })
   end
 
   def test_intersects
-    ids_tester(:st_intersects, 'LINESTRING(-5 -5, 10 10)', [ 2, 3 ])
+    ids_tester(:st_intersects, 'LINESTRING(-5 -5, 10 10)', [2, 3])
   end
 
   def test_dwithin
-    ids_tester(:st_dwithin, [ 'POINT(5 5)', 10 ], [ 3 ])
+    ids_tester(:st_dwithin, ['POINT(5 5)', 10], [3])
   end
 
   def test_allow_null
-    begin
-      foo = FooGeography.create(name: 'four')
-      ids_tester(:st_covers, [ 'POINT(3 3)', { allow_null: true } ], [ 3, foo.id ])
-    ensure
-      FooGeography.find_by_name('four').destroy
-    end
+    foo = FooGeography.create(name: 'four')
+    ids_tester(:st_covers, ['POINT(3 3)', { allow_null: true }], [3, foo.id])
+  ensure
+    FooGeography.find_by_name('four').destroy
   end
 
   def test_with_column
@@ -103,4 +101,3 @@ class SpatialScopesGeographiesTests < ActiveRecordSpatialTestCase
     assert_equal([3, 1, 2], FooGeography.order_by_st_area(:desc).to_a.collect(&:id))
   end
 end
-

@@ -7,7 +7,7 @@ require 'rake/testtask'
 require 'rdoc/task'
 require 'bundler/gem_tasks'
 
-$:.push File.expand_path(File.dirname(__FILE__), 'lib')
+$LOAD_PATH.push File.expand_path(File.dirname(__FILE__), 'lib')
 
 version = ActiveRecordSpatial::VERSION
 
@@ -25,4 +25,3 @@ Rake::RDocTask.new do |t|
   t.rdoc_dir = 'doc'
   t.rdoc_files.include('README.rdoc', 'MIT-LICENSE', 'lib/**/*.rb')
 end
-
