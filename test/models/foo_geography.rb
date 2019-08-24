@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 unless ActiveRecordSpatialTestCase.table_exists?('foo_geographies')
   ActiveRecord::Migration.create_table(:foo_geographies) do |t|

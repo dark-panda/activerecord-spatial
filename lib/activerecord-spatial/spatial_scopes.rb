@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 module ActiveRecordSpatial
   # Creates named scopes for spatial relationships. The scopes created

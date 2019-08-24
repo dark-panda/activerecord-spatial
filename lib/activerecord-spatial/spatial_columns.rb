@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 module ActiveRecordSpatial
   # This little module helps us out with geometry columns. At least, in
