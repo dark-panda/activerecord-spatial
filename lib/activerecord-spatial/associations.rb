@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 require 'activerecord-spatial/associations/base'
 require 'activerecord-spatial/associations/reflection/spatial_reflection'
