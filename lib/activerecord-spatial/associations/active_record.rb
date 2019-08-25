@@ -40,9 +40,7 @@ module ActiveRecord
           geom_options[:name] = reflection.geom
         end
 
-        join_keys = reflection.join_keys
         table = reflection.aliased_table
-
         scope = scope.send("st_#{reflection.relationship}", geom_options, reflection.scope_options)
 
         if reflection.type

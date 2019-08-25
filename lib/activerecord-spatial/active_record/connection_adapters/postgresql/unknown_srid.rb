@@ -9,7 +9,7 @@ module ActiveRecordSpatial
       }.freeze
     else
       {
-        geography:  0,
+        geography: 0,
         geometry: -1
       }.freeze
     end
