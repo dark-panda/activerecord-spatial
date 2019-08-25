@@ -38,10 +38,10 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES[:geom
 
 ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
   prepend(Module.new do
-    def initialize_type_map(type_map)
+    def initialize_type_map(m = type_map)
       super
-      type_map.register_type 'geometry', ::ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Geometry.new
-      type_map.register_type 'geography', ::ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Geography.new
+      m.register_type 'geometry', ::ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Geometry.new
+      m.register_type 'geography', ::ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Geography.new
     end
   end)
 end

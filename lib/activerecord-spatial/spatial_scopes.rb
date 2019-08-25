@@ -196,7 +196,7 @@ module ActiveRecordSpatial
             function_call = ActiveRecordSpatial::SpatialFunction.build!(self, '#{measurement}', options).to_sql
             function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
-            order(function_call)
+            order(Arel.sql(function_call))
           }
         RUBY
       end
@@ -217,7 +217,7 @@ module ActiveRecordSpatial
             function_call = ActiveRecordSpatial::SpatialFunction.build!(self, '#{measurement}', options).to_sql
             function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
-            order(function_call)
+            order(Arel.sql(function_call))
           }
         RUBY
       end
@@ -232,7 +232,7 @@ module ActiveRecordSpatial
             function_call = ActiveRecordSpatial::SpatialFunction.build!(self, '#{measurement}', options).to_sql
             function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
-            order(function_call)
+            order(Arel.sql(function_call))
           }
         RUBY
       end
@@ -255,7 +255,7 @@ module ActiveRecordSpatial
           ).to_sql
           function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
-          order(function_call)
+          order(Arel.sql(function_call))
         }
 
         scope :order_by_st_distance_spheroid, lambda { |geom, spheroid, options = {}|
@@ -275,7 +275,7 @@ module ActiveRecordSpatial
           ).to_sql
           function_call << ActiveRecordSpatial::SpatialFunction.additional_ordering(options)
 
-          order(function_call)
+          order(Arel.sql(function_call))
         }
 
         class << self

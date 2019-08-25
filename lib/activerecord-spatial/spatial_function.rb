@@ -82,7 +82,7 @@ module ActiveRecordSpatial
           options[:desc]
         end
 
-        ''.tap do |ret|
+        ''.dup.tap do |ret|
           ret << ' DESC' if desc
           ret << " NULLS #{options[:nulls].to_s.upcase}" if options[:nulls]
         end

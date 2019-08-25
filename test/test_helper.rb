@@ -35,15 +35,15 @@ puts "Ruby #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} - #{RbConfig::CONFIG['RUBY_INSTAL
 puts "Geos library #{Geos::VERSION}" if defined?(Geos::VERSION)
 puts "GEOS #{Geos::GEOS_VERSION}"
 puts "GEOS extensions #{Geos::GEOS_EXTENSIONS_VERSION}"
+
 if defined?(Geos::FFIGeos)
   puts "Using #{Geos::FFIGeos.geos_library_paths.join(', ')}"
 end
 
 ActiveSupport::TestCase.test_order = :random
 ActiveRecord::Base.logger = Logger.new('debug.log') if ENV['ENABLE_LOGGER']
-ActiveRecord::Base.configurations = {
-  'arunit' => {}
-}
+
+configurations = {}
 
 %w{
   database.yml
@@ -55,15 +55,18 @@ ActiveRecord::Base.configurations = {
 
   configuration = YAML.safe_load(File.read(file))
 
+  configurations.merge!(configuration)
+
   if configuration['arunit']
-    ActiveRecord::Base.configurations['arunit'].merge!(configuration['arunit'])
+    configurations['arunit'].merge!(configuration['arunit'])
   end
 
   if defined?(JRUBY_VERSION) && configuration['jdbc']
-    ActiveRecord::Base.configurations['arunit'].merge!(configuration['jdbc'])
+    configurations['arunit'].merge!(configuration['jdbc'])
   end
 end
 
+ActiveRecord::Base.configurations = configurations
 ActiveRecord::Base.establish_connection :arunit
 ARBC = ActiveRecord::Base.connection
 
@@ -82,25 +85,11 @@ puts 'Checking for PostGIS install'
       puts "PostGIS info from postgis_full_version(): #{postgis_version}"
       break
     end
-  rescue ActiveRecord::StatementInvalid
+  rescue ActiveRecord::StatementInvalid, PG::UndefinedFunction
     puts "Trying to install PostGIS. If this doesn't work, you'll have to do this manually!"
 
-    plpgsql = ARBC.select_rows(%{SELECT count(*) FROM pg_language WHERE lanname = 'plpgsql'}).first.first.to_i
-    ARBC.execute(%{CREATE LANGUAGE plpgsql}) if plpgsql.zero?
-
-    %w{
-      postgis.sql
-      spatial_ref_sys.sql
-    }.each do |file|
-      if !(found = Dir.glob(POSTGIS_PATHS).collect { |path|
-        File.join(path, file)
-      }.first)
-        puts "ERROR: Couldn't find #{file}. Try setting the POSTGIS_PATH to give us a hint!"
-        exit
-      else
-        ARBC.execute(File.read(found))
-      end
-    end
+    ARBC.enable_extension('plpgsql') unless ARBC.extension_enabled?('plpgsql')
+    ARBC.enable_extension('postgis') unless ARBC.extension_enabled?('postgis')
   end
 end
 
@@ -177,41 +166,23 @@ class ActiveRecordSpatialTestCase < ActiveRecord::TestCase
   BOUNDS_G_LAT_LNG = '((0.1, 0.1), (5.2, 5.2))'.freeze
   BOUNDS_G_LAT_LNG_URL_VALUE = '0.1,0.1,5.2,5.2'.freeze
 
-  class << self
-    def load_models(*args)
-      self.fixture_table_names = args.collect do |arg|
-        arg.to_s.pluralize
-      end
+  def load_models(*args)
+    args.each do |model|
+      require_dependency(BASE_PATH.join("models/#{model}.rb"))
+    end
+  end
 
-      args.each do |model|
-        model = model.to_s
-        klass = model.classify
-        fixtures model.tableize
+  def load_default_models
+    load_models(:foo, :bar)
 
-        ActiveSupport::Dependencies.load_file(BASE_PATH.join("models/#{model}.rb"), [klass])
-      end
+    Foo.class_eval do
+      has_many_spatially :foos
+      has_many_spatially :bars
     end
 
-    def load_default_models
-      load_models(:foo, :bar)
-
-      Foo.class_eval do
-        has_many_spatially :foos
-        has_many_spatially :bars
-      end
-
-      Bar.class_eval do
-        has_many_spatially :foos
-        has_many_spatially :bars
-      end
-    end
-
-    def after_suite
-      ActiveSupport::Dependencies.clear
-    end
-
-    def table_exists?(table)
-      ARBC.data_source_exists?(table)
+    Bar.class_eval do
+      has_many_spatially :foos
+      has_many_spatially :bars
     end
   end
 
@@ -245,15 +216,11 @@ class ActiveRecordSpatialTestCase < ActiveRecord::TestCase
 end
 
 class SpatialTestRunner < Minitest::Reporters::SpecReporter
-  def before_suite(suite)
-    super(suite)
-    suite.before_suite if suite.respond_to?(:before_suite)
-  end
-
-  def after_suite(suite)
-    super(suite)
-    suite.after_suite if suite.respond_to?(:after_suite)
-  end
+  # no-op
 end
 
-Minitest::Reporters.use!(SpatialTestRunner.new)
+Minitest::Reporters.use!(SpatialTestRunner.new, ENV, Minitest::ExtensibleBacktraceFilter.default_filter)
+
+require './test/schema'
+
+ActiveRecord::FixtureSet.create_fixtures("#{__dir__}/fixtures", Dir.glob("#{__dir__}/fixtures/*.yml").collect { |file| File.basename(file).gsub(/.yml$/, '') })

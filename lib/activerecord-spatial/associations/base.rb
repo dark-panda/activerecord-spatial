@@ -14,31 +14,13 @@ module ActiveRecord
         :inverse_of
       ].freeze
 
-      def macro
+      def self.macro
         SPATIAL_MACRO
       end
 
       def self.valid_options(options)
         super + VALID_SPATIAL_OPTIONS - INVALID_SPATIAL_OPTIONS
       end
-    end
-
-    class Preloader #:nodoc:
-      class SpatialAssociation < HasMany #:nodoc:
-        SPATIAL_FIELD_ALIAS = '__spatial_ids__'.freeze
-        SPATIAL_JOIN_NAME = '__spatial_ids_join__'.freeze
-        SPATIAL_JOIN_QUOTED_NAME = %{"#{SPATIAL_JOIN_NAME}"}.freeze
-      end
-
-      prepend(Module.new do
-        def preloader_for(reflection, *args)
-          if reflection.is_a?(ActiveRecord::Reflection::SpatialReflection)
-            SpatialAssociation
-          else
-            super
-          end
-        end
-      end)
     end
   end
 end
