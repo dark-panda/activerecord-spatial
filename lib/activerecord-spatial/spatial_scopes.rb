@@ -143,7 +143,7 @@ module ActiveRecordSpatial
 
       SpatialScopeConstants::RELATIONSHIPS.each do |relationship|
         class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
-          scope :st_#{relationship}, lambda { |geom, options = {}|
+          scope :st_#{relationship}, ->(geom, options = {}) {
             options = {
               geom_arg: geom
             }.merge(options)
@@ -159,7 +159,7 @@ module ActiveRecordSpatial
 
       SpatialScopeConstants::ONE_GEOMETRY_ARGUMENT_AND_ONE_ARGUMENT_RELATIONSHIPS.each do |relationship|
         class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
-          scope :st_#{relationship}, lambda { |geom, distance, options = {}|
+          scope :st_#{relationship}, ->(geom, distance, options = {}) {
             options = {
               geom_arg: geom,
               args: distance
@@ -173,7 +173,7 @@ module ActiveRecordSpatial
       end
 
       class_eval do
-        scope :st_geometry_type, lambda { |*args|
+        scope :st_geometry_type, ->(*args) {
           assert_arguments_length[args, 1]
           options = args.extract_options!
           types = args
@@ -186,7 +186,7 @@ module ActiveRecordSpatial
 
       SpatialScopeConstants::ZERO_ARGUMENT_MEASUREMENTS.each do |measurement|
         class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
-          scope :order_by_st_#{measurement}, lambda { |options = {}|
+          scope :order_by_st_#{measurement}, ->(options = {}) {
             if options.is_a?(Symbol)
               options = {
                 desc: options
@@ -203,7 +203,7 @@ module ActiveRecordSpatial
 
       SpatialScopeConstants::ONE_GEOMETRY_ARGUMENT_MEASUREMENTS.each do |measurement|
         class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
-          scope :order_by_st_#{measurement}, lambda { |geom, options = {}|
+          scope :order_by_st_#{measurement}, ->(geom, options = {}) {
             if options.is_a?(Symbol)
               options = {
                 desc: options
@@ -224,7 +224,7 @@ module ActiveRecordSpatial
 
       SpatialScopeConstants::ONE_ARGUMENT_MEASUREMENTS.each do |measurement|
         class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
-          scope :order_by_st_#{measurement}, lambda { |argument, options = {}|
+          scope :order_by_st_#{measurement}, ->(argument, options = {}) {
             options = {
               args: argument
             }.merge(options)
@@ -238,7 +238,7 @@ module ActiveRecordSpatial
       end
 
       class_eval do
-        scope :order_by_st_hausdorffdistance, lambda { |*args|
+        scope :order_by_st_hausdorffdistance, ->(*args) {
           assert_arguments_length[args, 1, 3]
           options = args.extract_options!
           geom, densify_frac = args
@@ -258,7 +258,7 @@ module ActiveRecordSpatial
           order(Arel.sql(function_call))
         }
 
-        scope :order_by_st_distance_spheroid, lambda { |geom, spheroid, options = {}|
+        scope :order_by_st_distance_spheroid, ->(geom, spheroid, options = {}) {
           options = {
             geom_arg: geom,
             args: spheroid
