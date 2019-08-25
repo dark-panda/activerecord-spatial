@@ -13,8 +13,8 @@ class AdapterTests < ActiveRecordSpatialTestCase
       c.type == :geometry
     end
 
-    other_columns = Foo.columns.select do |c|
-      c.type != :geometry
+    other_columns = Foo.columns.reject do |c|
+      c.type == :geometry
     end
 
     assert_equal(2, geometry_columns.length)

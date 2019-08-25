@@ -46,7 +46,7 @@ class RelationshipsTest < ActiveRecordSpatialTestCase
     overlaps: [],
     touches: [],
     within: [3],
-    :'3dintersects' => [3]
+    '3dintersects': [3]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
       skip("ST_#{relationship} is unavailable") unless Foo.respond_to?("st_#{relationship}")
@@ -96,7 +96,7 @@ class RelationshipsWithSelfTest < ActiveRecordSpatialTestCase
     overlaps: [],
     touches: [],
     within: [1, 3],
-    :'3dintersects' => [1, 3]
+    '3dintersects': [1, 3]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
       skip("ST_#{relationship} is unavailable") unless Foo.respond_to?("st_#{relationship}")
@@ -132,7 +132,7 @@ class RelationshipsWithForeignGeomTest < ActiveRecordSpatialTestCase
     overlaps: [],
     touches: [],
     within: [3],
-    :'3dintersects' => [3]
+    '3dintersects': [3]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
       skip("ST_#{relationship} is unavailable") unless Foo.respond_to?("st_#{relationship}")
@@ -172,7 +172,7 @@ class RelationshipsWithGeomTest < ActiveRecordSpatialTestCase
     overlaps: [],
     touches: [3],
     within: [],
-    :'3dintersects' => [3]
+    '3dintersects': [3]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
       skip("ST_#{relationship} is unavailable") unless Foo.respond_to?("st_#{relationship}")
@@ -396,7 +396,7 @@ class PolymorphicAssociationsWithRelationshipsTest < ActiveRecordSpatialTestCase
     overlaps: [],
     touches: [],
     within: [1, 7],
-    :'3dintersects' => [1, 7]
+    '3dintersects': [1, 7]
   }.each do |relationship, ids|
     define_method("test_#{relationship}") do
       skip("ST_#{relationship} is unavailable") unless Foo.respond_to?("st_#{relationship}")
