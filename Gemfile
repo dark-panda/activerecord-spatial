@@ -16,5 +16,6 @@ gem 'minitest-reporters'
 gem 'rake'
 gem 'rdoc'
 gem 'simplecov'
+gem 'terminal-notifier'
 
 instance_eval File.read('Gemfile.local') if File.exist?('Gemfile.local')
