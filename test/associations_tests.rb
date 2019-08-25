@@ -4,7 +4,7 @@ $LOAD_PATH << File.dirname(__FILE__)
 require 'test_helper'
 
 class DefaultIntersectsRelationshipTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
 
     Foo.class_eval do
@@ -29,7 +29,7 @@ class DefaultIntersectsRelationshipTest < ActiveRecordSpatialTestCase
 end
 
 class RelationshipsTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
   end
 
@@ -64,8 +64,22 @@ class RelationshipsTest < ActiveRecordSpatialTestCase
   end
 end
 
+class PlainRelationshipsTest < ActiveRecordSpatialTestCase
+  def setup
+    load_models(:foo, :blort)
+  end
+
+  def test_with_eager_loading
+    values = Foo.includes(:blorts).to_a.collect do |foo|
+      foo.blorts.length
+    end
+
+    assert_equal([3, 3, 3], values)
+  end
+end
+
 class RelationshipsWithSelfTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
   end
 
@@ -101,7 +115,7 @@ class RelationshipsWithSelfTest < ActiveRecordSpatialTestCase
 end
 
 class RelationshipsWithForeignGeomTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
   end
 
@@ -141,7 +155,7 @@ class RelationshipsWithForeignGeomTest < ActiveRecordSpatialTestCase
 end
 
 class RelationshipsWithGeomTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
   end
 
@@ -181,7 +195,7 @@ class RelationshipsWithGeomTest < ActiveRecordSpatialTestCase
 end
 
 class CountsTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_default_models
   end
 
@@ -192,7 +206,7 @@ class CountsTest < ActiveRecordSpatialTestCase
 end
 
 class WithCounterSqlTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
   end
 
@@ -208,7 +222,7 @@ class WithCounterSqlTest < ActiveRecordSpatialTestCase
 end
 
 class ScopeOptionsTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
 
     Foo.class_eval do
@@ -228,7 +242,7 @@ class ScopeOptionsTest < ActiveRecordSpatialTestCase
 end
 
 class PreloadTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_default_models
   end
 
@@ -260,7 +274,7 @@ class PreloadTest < ActiveRecordSpatialTestCase
 end
 
 class PreloadWithOtherGeomTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
 
     Foo.class_eval do
@@ -298,7 +312,7 @@ class PreloadWithOtherGeomTest < ActiveRecordSpatialTestCase
 end
 
 class PolymorphicAssociationsTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar, :zortable)
 
     Foo.class_eval do
@@ -365,7 +379,7 @@ class PolymorphicAssociationsTest < ActiveRecordSpatialTestCase
 end
 
 class PolymorphicAssociationsWithRelationshipsTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar, :zortable)
   end
 
@@ -402,7 +416,7 @@ class PolymorphicAssociationsWithRelationshipsTest < ActiveRecordSpatialTestCase
 end
 
 class ClassNameOptionTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
 
     Foo.class_eval do
@@ -418,7 +432,7 @@ class ClassNameOptionTest < ActiveRecordSpatialTestCase
 end
 
 class ScopesTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
 
     Foo.class_eval do
@@ -454,7 +468,7 @@ class ScopesTest < ActiveRecordSpatialTestCase
 end
 
 class GeomWrapperTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
 
     Foo.class_eval do
@@ -488,7 +502,7 @@ class GeomWrapperTest < ActiveRecordSpatialTestCase
 end
 
 class ForeignGeomWrapperTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
 
     Foo.class_eval do
@@ -522,7 +536,7 @@ class ForeignGeomWrapperTest < ActiveRecordSpatialTestCase
 end
 
 class BothGeomWrapperTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
 
     Foo.class_eval do
@@ -559,7 +573,7 @@ class BothGeomWrapperTest < ActiveRecordSpatialTestCase
 end
 
 class BothGeomWrapperWithMixedSRIDsTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
 
     Foo.class_eval do
@@ -597,7 +611,7 @@ class BothGeomWrapperWithMixedSRIDsTest < ActiveRecordSpatialTestCase
 end
 
 class BothGeomWrapperAndOptionsWithMixedSRIDsTest < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo, :bar)
 
     Foo.class_eval do
@@ -637,7 +651,7 @@ class BothGeomWrapperAndOptionsWithMixedSRIDsTest < ActiveRecordSpatialTestCase
 
   class ScopeArgumentTest < ActiveRecordSpatialTestCase
     def setup
-      self.class.load_models(:foo, :bar, :blort)
+      load_models(:foo, :bar)
     end
 
     def test_foo

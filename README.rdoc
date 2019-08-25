@@ -107,21 +107,15 @@ See the test/database.yml file for example settings.
 
 == ActiveRecord Versions Supported
 
-We're starting to standardize on Rails 5 for our purposes, so future versions
-this gem function on versions of Rails 5 and above. To use spatial scopes on
-previous versions of ActiveRecord, see our geos-extensions gem available at
-https://github.com/dark-panda/geos-extensions . We have pulled the ActiveRecord
-extensions out of that gem and are instead packaging them here, thus allowing
-you to use the actual Geos extensions in an unfettered way. If you wish to
-use the spatial extensions with versions of Rails prior to 5, see versions of
-the ActiveRecordSpatial gem prior to version 1.0.0.
+Major version updates now coincide with Rails version updates. This particular
+version works with Rails 6.0. For older versions of Rails, see older versions of
+the gem.
 
 == PostGIS and PostgreSQL Versions Supported
 
-As of this writing, things we test on PostgreSQL 9.4 and PostGIS 2.1+.
-Some features are only available in PostGIS 2.0, such as the +st_3dintersects+
-scope and the like, as that spatial relationship function was added in PostGIS
-2.0.
+As of this writing, things we test on PostgreSQL 11 and PostGIS 2.5+.
+Some features are only available on newer versions of PostGIS such as certain
+scopes and the like.
 
 PostgreSQL 9.0 and below are currently not supported as some of the SQL we
 produce to create the spatial queries is not supported in older PostgreSQL

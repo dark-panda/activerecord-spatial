@@ -4,7 +4,7 @@ $LOAD_PATH << File.dirname(__FILE__)
 require 'test_helper'
 
 class AdapterTests < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo)
   end
 
@@ -24,7 +24,7 @@ end
 
 if ActiveRecordSpatial.geography_columns?
   class AdapterWithGeographyTests < ActiveRecordSpatialTestCase
-    def self.before_suite
+    def setup
       load_models(:foo_geography)
     end
 

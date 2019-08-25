@@ -4,7 +4,7 @@ $LOAD_PATH << File.dirname(__FILE__)
 require 'test_helper'
 
 class SpatialFunctionTests < ActiveRecordSpatialTestCase
-  def self.before_suite
+  def setup
     load_models(:foo)
     load_models(:blort)
   end
